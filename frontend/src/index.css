@@ -7,6 +7,36 @@
 @layer base {
   :root {
     --radius: 0.75rem;
+
+    --color-bg: 248 250 252;
+    --color-bg-soft: 241 245 249;
+    --color-surface: 255 255 255;
+    --color-surface-2: 248 250 252;
+    --color-border: 226 232 240;
+    --color-border-strong: 203 213 225;
+    --color-fg: 15 23 42;
+    --color-muted: 100 116 139;
+    --color-muted-fg: 71 85 105;
+
+    --bg-glow-1: rgba(99, 102, 241, 0.08);
+    --bg-glow-2: rgba(14, 165, 233, 0.07);
+  }
+
+  html.dark {
+    --color-bg: 2 6 23;
+    --color-bg-soft: 15 23 42;
+    --color-surface: 15 23 42;
+    --color-surface-2: 30 41 59;
+    --color-border: 30 41 59;
+    --color-border-strong: 51 65 85;
+    --color-fg: 226 232 240;
+    --color-muted: 148 163 184;
+    --color-muted-fg: 203 213 225;
+
+    --bg-glow-1: rgba(99, 102, 241, 0.18);
+    --bg-glow-2: rgba(14, 165, 233, 0.15);
+
+    color-scheme: dark;
   }
 
   html,
@@ -16,15 +46,20 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans;
-    background:
-      radial-gradient(900px 600px at 0% 0%, rgba(99, 102, 241, 0.08), transparent 60%),
-      radial-gradient(800px 500px at 100% 100%, rgba(14, 165, 233, 0.07), transparent 60%),
-      #f8fafc;
+    @apply antialiased font-sans;
+    color: rgb(var(--color-fg));
+    background-color: rgb(var(--color-bg));
+    background-image:
+      radial-gradient(900px 600px at 0% 0%, var(--bg-glow-1), transparent 60%),
+      radial-gradient(800px 500px at 100% 100%, var(--bg-glow-2), transparent 60%);
   }
 
   ::selection {
     @apply bg-brand-200 text-brand-900;
+  }
+
+  html[dir="rtl"] body {
+    direction: rtl;
   }
 }
 
@@ -36,34 +71,46 @@
     @apply btn bg-brand-600 text-white hover:bg-brand-700 shadow-sm shadow-brand-600/30;
   }
   .btn-secondary {
-    @apply btn bg-white border border-slate-200 text-slate-700 hover:bg-slate-50;
+    @apply btn bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700;
   }
   .btn-ghost {
-    @apply btn bg-transparent text-slate-700 hover:bg-slate-100;
+    @apply btn bg-transparent text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800;
   }
   .btn-danger {
     @apply btn bg-rose-500 text-white hover:bg-rose-600;
   }
   .btn-icon {
-    @apply inline-flex items-center justify-center rounded-lg w-9 h-9 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition;
+    @apply inline-flex items-center justify-center rounded-lg w-9 h-9 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200;
   }
   .input {
-    @apply w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 disabled:bg-slate-50;
+    @apply w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 disabled:bg-slate-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-brand-400 dark:focus:ring-brand-500/30 dark:disabled:bg-slate-800;
   }
   .label {
-    @apply block text-sm font-medium text-slate-700 mb-1.5;
+    @apply block text-sm font-medium text-slate-700 mb-1.5 dark:text-slate-300;
   }
   .card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-soft;
+    @apply rounded-2xl border border-slate-200 bg-white shadow-soft dark:bg-slate-900 dark:border-slate-800;
   }
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
   }
   .nav-link {
-    @apply flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all;
+    @apply flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white;
   }
   .nav-link.active {
-    @apply bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-glow hover:bg-brand-600 hover:text-white;
+    @apply bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-glow hover:bg-brand-600 hover:text-white dark:hover:text-white;
+  }
+  .surface {
+    @apply bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800;
+  }
+  .text-muted {
+    @apply text-slate-500 dark:text-slate-400;
+  }
+  .divider {
+    @apply border-slate-200 dark:border-slate-800;
+  }
+  .kbd {
+    @apply inline-flex items-center justify-center rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono font-semibold text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300;
   }
 }
 
@@ -77,9 +124,19 @@
 ::-webkit-scrollbar-thumb {
   background: rgba(100, 116, 139, 0.25);
   border-radius: 999px;
-  border: 2px solid #f8fafc;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.4);
+  background-clip: padding-box;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  background-clip: padding-box;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+  background-clip: padding-box;
 }
 

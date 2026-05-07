@@ -10,6 +10,7 @@ from .routes import (
     grades_routes,
     levels_routes,
     schedule_routes,
+    search_routes,
     subjects_routes,
     todos_routes,
 )
@@ -48,3 +49,4 @@ app.include_router(schedule_routes.router)
 app.include_router(grades_routes.router)
 app.include_router(todos_routes.router)
 app.include_router(dashboard_routes.router)
+app.include_router(search_routes.router)

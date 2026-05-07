@@ -210,4 +210,15 @@ class DashboardStats(BaseModel):
     pending_todos: int
 
 
+# ------------- Search --------------
+SchoolClassOut = ClassOut
+
+
+class SearchPayload(BaseModel):
+    files: List[FileOut]
+    exercises: List[ExerciseOut]
+    classes: List[ClassOut]
+    schedule: List[ScheduleEventOut]
+
+
 TokenOut.model_rebuild()
