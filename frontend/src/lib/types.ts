@@ -98,6 +98,86 @@ export interface TodoTask {
   created_at: string;
 }
 
+export interface Student {
+  id: number;
+  class_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  parent_email: string;
+  notes: string;
+  created_at: string;
+}
+
+export type AttendanceStatus = "present" | "absent" | "retard" | "justifie";
+
+export interface Attendance {
+  id: number;
+  class_id: number;
+  student_id: number;
+  event_id: number | null;
+  date: string;
+  status: AttendanceStatus;
+  notes: string;
+  student?: Student | null;
+}
+
+export interface Assignment {
+  id: number;
+  title: string;
+  description: string;
+  class_id: number;
+  subject_id: number | null;
+  due_date: string | null;
+  file_id: number | null;
+  max_score: number;
+  created_at: string;
+  subject?: Subject | null;
+}
+
+export type SubmissionStatus =
+  | "pending"
+  | "submitted"
+  | "late"
+  | "missing"
+  | "graded";
+
+export interface Submission {
+  id: number;
+  assignment_id: number;
+  student_id: number;
+  status: SubmissionStatus;
+  submitted_at: string | null;
+  score: number | null;
+  feedback: string;
+  student?: Student | null;
+}
+
+export interface Competency {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  level_id: number | null;
+  subject_id: number | null;
+  color: string;
+  created_at: string;
+  level?: Level | null;
+  subject?: Subject | null;
+}
+
+export type CompetencyRating = "acquis" | "en_cours" | "non_acquis";
+
+export interface CompetencyAssessment {
+  id: number;
+  student_id: number;
+  competency_id: number;
+  rating: CompetencyRating;
+  date: string;
+  notes: string;
+  competency?: Competency | null;
+}
+
 export interface DashboardStats {
   files_count: number;
   exercises_count: number;

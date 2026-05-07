@@ -7,6 +7,7 @@ import { FilesPage } from "./pages/FilesPage";
 import { ExercisesPage } from "./pages/ExercisesPage";
 import { SchedulePage } from "./pages/SchedulePage";
 import { ClassesPage } from "./pages/ClassesPage";
+import { ClassDetailPage } from "./pages/ClassDetailPage";
 import { GradesPage } from "./pages/GradesPage";
 import { TodosPage } from "./pages/TodosPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -28,6 +29,7 @@ function App() {
         <Route path="exercises" element={<ExercisesPage />} />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="classes" element={<ClassesPage />} />
+        <Route path="classes/:id" element={<ClassDetailPage />} />
         <Route path="grades" element={<GradesPage />} />
         <Route path="todos" element={<TodosPage />} />
         <Route path="settings" element={<SettingsPage />} />

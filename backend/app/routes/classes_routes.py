@@ -18,6 +18,19 @@ def list_classes(level_id: Optional[int] = None, db: Session = Depends(get_db)):
     return q.order_by(SchoolClass.name).all()
 
 
+@router.get("/{class_id}", response_model=schemas.ClassOut)
+def get_class(class_id: int, db: Session = Depends(get_db)):
+    cls = (
+        db.query(SchoolClass)
+        .options(joinedload(SchoolClass.level))
+        .filter(SchoolClass.id == class_id)
+        .first()
+    )
+    if not cls:
+        raise HTTPException(404, "Classe introuvable")
+    return cls
+
+
 @router.post("", response_model=schemas.ClassOut, status_code=201)
 def create_class(payload: schemas.ClassIn, db: Session = Depends(get_db)):
     cls = SchoolClass(**payload.model_dump())

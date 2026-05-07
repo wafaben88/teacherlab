@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { GraduationCap, Plus, Pencil, Trash2, Users } from "lucide-react";
+import { GraduationCap, Plus, Pencil, Trash2, Users, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import type { Level, SchoolClass } from "../lib/types";
 import { PageHeader } from "../components/PageHeader";
@@ -219,8 +220,8 @@ export function ClassesPage() {
                       <GraduationCap className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="font-bold text-slate-900 leading-tight">{c.name}</div>
-                      <div className="text-xs text-slate-500">{c.level?.name}</div>
+                      <div className="font-bold leading-tight">{c.name}</div>
+                      <div className="text-xs text-muted">{c.level?.name}</div>
                     </div>
                   </div>
                 </div>
@@ -235,20 +236,26 @@ export function ClassesPage() {
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
-                    className="btn-icon text-rose-500 hover:bg-rose-50"
+                    className="btn-icon text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"
                     onClick={() => onDelete(c)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <div className="flex items-center gap-4 mt-3 text-sm text-slate-600">
+              <div className="flex items-center gap-4 mt-3 text-sm text-muted">
                 <span className="flex items-center gap-1">
                   <Users className="w-4 h-4" /> {c.student_count} élèves
                 </span>
-                <span className="text-xs text-slate-400">{c.school_year}</span>
+                <span className="text-xs text-muted">{c.school_year}</span>
               </div>
-              {c.notes && <p className="text-sm text-slate-600 mt-2 line-clamp-2">{c.notes}</p>}
+              {c.notes && <p className="text-sm text-muted mt-2 line-clamp-2">{c.notes}</p>}
+              <Link
+                to={`/classes/${c.id}`}
+                className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline"
+              >
+                Ouvrir <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           ))}
         </div>
