@@ -15,20 +15,22 @@ import { useEffect, useState } from "react";
 import { Header } from "./Header";
 import { CommandPalette } from "./CommandPalette";
 import { Onboarding } from "./Onboarding";
+import { useI18n } from "../lib/i18n";
 
 const NAV = [
-  { to: "/", label: "Tableau de bord", icon: LayoutDashboard, end: true },
-  { to: "/files", label: "Fichiers & Cours", icon: FolderKanban },
-  { to: "/exercises", label: "Exercices", icon: BookOpenCheck },
-  { to: "/schedule", label: "Planning", icon: Calendar },
-  { to: "/classes", label: "Classes", icon: GraduationCap },
-  { to: "/grades", label: "Notes", icon: Award },
-  { to: "/todos", label: "À faire", icon: CheckSquare },
-  { to: "/settings", label: "Paramètres", icon: Settings },
+  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, end: true },
+  { to: "/files", labelKey: "nav.files", icon: FolderKanban },
+  { to: "/exercises", labelKey: "nav.exercises", icon: BookOpenCheck },
+  { to: "/schedule", labelKey: "nav.schedule", icon: Calendar },
+  { to: "/classes", labelKey: "nav.classes", icon: GraduationCap },
+  { to: "/grades", labelKey: "nav.grades", icon: Award },
+  { to: "/todos", labelKey: "nav.todos", icon: CheckSquare },
+  { to: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
 export function Layout() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
 
@@ -59,8 +61,8 @@ export function Layout() {
               <Sparkles className="w-5 h-5" />
             </div>
             <div className="text-left">
-              <div className="font-bold leading-none">Teacher Hub</div>
-              <div className="text-[11px] text-muted leading-none mt-1">Espace enseignant</div>
+              <div className="font-bold leading-none">{t("app.name")}</div>
+              <div className="text-[11px] text-muted leading-none mt-1">{t("app.tagline")}</div>
             </div>
           </button>
           <button
@@ -82,7 +84,7 @@ export function Layout() {
               className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
             >
               <item.icon className="w-5 h-5 shrink-0" />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </NavLink>
           ))}
         </nav>
@@ -92,7 +94,7 @@ export function Layout() {
             onClick={() => setCommandOpen(true)}
             className="w-full flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 px-3 py-2 text-sm text-muted transition"
           >
-            <span className="flex-1 text-left">Recherche rapide</span>
+            <span className="flex-1 text-left">{t("common.search")}</span>
             <span className="kbd">⌘ K</span>
           </button>
         </div>
