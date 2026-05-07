@@ -511,6 +511,70 @@ class QuizSubmitOut(_Base):
     detail: dict
 
 
+# ------------- Rubrics -------------
+class RubricCriterionIn(BaseModel):
+    position: Optional[int] = 0
+    name: str
+    description: Optional[str] = ""
+    weight: Optional[float] = 1.0
+    max_score: Optional[float] = 4.0
+
+
+class RubricCriterionOut(_Base):
+    id: int
+    position: int
+    name: str
+    description: str
+    weight: float
+    max_score: float
+
+
+class RubricIn(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    subject_id: Optional[int] = None
+    level_id: Optional[int] = None
+    max_score: Optional[float] = 20
+    criteria: List[RubricCriterionIn] = []
+
+
+class RubricOut(_Base):
+    id: int
+    title: str
+    description: str
+    subject_id: Optional[int]
+    level_id: Optional[int]
+    max_score: float
+    created_at: datetime
+    subject: Optional[SubjectOut] = None
+    level: Optional[LevelOut] = None
+    criteria: List[RubricCriterionOut] = []
+
+
+class RubricEvaluationIn(BaseModel):
+    rubric_id: int
+    student_id: Optional[int] = None
+    student_label: Optional[str] = ""
+    class_id: Optional[int] = None
+    scores: dict = {}
+    notes: Optional[str] = ""
+    date: Optional[datetime] = None
+
+
+class RubricEvaluationOut(_Base):
+    id: int
+    rubric_id: int
+    student_id: Optional[int]
+    student_label: str
+    class_id: Optional[int]
+    scores_json: str
+    final_score: float
+    notes: str
+    date: datetime
+    student: Optional[StudentOut] = None
+    rubric: Optional[RubricOut] = None
+
+
 # ------------- Resources -----------
 class ResourceIn(BaseModel):
     title: str

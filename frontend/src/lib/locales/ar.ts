@@ -8,6 +8,7 @@ export const ar: Record<string, string> = {
   "nav.schedule": "البرنامج",
   "nav.classes": "الأقسام",
   "nav.grades": "الأعداد",
+  "nav.rubrics": "شبكات تقييم",
   "nav.todos": "مهام",
   "nav.quizzes": "اختبارات قصيرة",
   "nav.sandbox": "محرر برمجي",

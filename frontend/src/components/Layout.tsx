@@ -13,6 +13,7 @@ import {
   Bookmark,
   ListChecks,
   Code2,
+  ClipboardCheck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Header } from "./Header";
@@ -27,6 +28,7 @@ const NAV = [
   { to: "/schedule", labelKey: "nav.schedule", icon: Calendar },
   { to: "/classes", labelKey: "nav.classes", icon: GraduationCap },
   { to: "/grades", labelKey: "nav.grades", icon: Award },
+  { to: "/rubrics", labelKey: "nav.rubrics", icon: ClipboardCheck },
   { to: "/quizzes", labelKey: "nav.quizzes", icon: ListChecks },
   { to: "/sandbox", labelKey: "nav.sandbox", icon: Code2 },
   { to: "/resources", labelKey: "nav.resources", icon: Bookmark },

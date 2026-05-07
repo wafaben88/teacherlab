@@ -17,6 +17,7 @@ import { SandboxPage } from "./pages/SandboxPage";
 import { QuizzesPage } from "./pages/QuizzesPage";
 import { QuizEditPage } from "./pages/QuizEditPage";
 import { QuizTakePage } from "./pages/QuizTakePage";
+import { RubricsPage } from "./pages/RubricsPage";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
         <Route path="quizzes/new" element={<QuizEditPage />} />
         <Route path="quizzes/:id/edit" element={<QuizEditPage />} />
         <Route path="quizzes/:id/take" element={<QuizTakePage />} />
+        <Route path="rubrics" element={<RubricsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>

@@ -273,6 +273,42 @@ export interface QuizAttemptResult {
   };
 }
 
+export interface RubricCriterion {
+  id: number;
+  position: number;
+  name: string;
+  description: string;
+  weight: number;
+  max_score: number;
+}
+
+export interface Rubric {
+  id: number;
+  title: string;
+  description: string;
+  subject_id: number | null;
+  level_id: number | null;
+  max_score: number;
+  created_at: string;
+  subject?: Subject | null;
+  level?: Level | null;
+  criteria: RubricCriterion[];
+}
+
+export interface RubricEvaluation {
+  id: number;
+  rubric_id: number;
+  student_id: number | null;
+  student_label: string;
+  class_id: number | null;
+  scores_json: string;
+  final_score: number;
+  notes: string;
+  date: string;
+  student?: Student | null;
+  rubric?: Rubric | null;
+}
+
 export interface Resource {
   id: number;
   title: string;

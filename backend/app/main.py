@@ -16,6 +16,7 @@ from .routes import (
     notifications_routes,
     quizzes_routes,
     resources_routes,
+    rubrics_routes,
     schedule_routes,
     search_routes,
     students_routes,
@@ -66,5 +67,7 @@ app.include_router(competencies_routes.router)
 app.include_router(exports_routes.router)
 app.include_router(quizzes_routes.router)
 app.include_router(resources_routes.router)
+app.include_router(rubrics_routes.router)
+app.include_router(rubrics_routes.eval_router)
 app.include_router(users_routes.router)
 app.include_router(notifications_routes.router)

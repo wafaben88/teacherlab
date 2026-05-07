@@ -8,6 +8,7 @@ export const fr: Record<string, string> = {
   "nav.schedule": "Planning",
   "nav.classes": "Classes",
   "nav.grades": "Notes",
+  "nav.rubrics": "Grilles",
   "nav.todos": "À faire",
   "nav.quizzes": "Quiz & QCM",
   "nav.sandbox": "Sandbox code",

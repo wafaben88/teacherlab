@@ -352,6 +352,58 @@ class QuizAttempt(Base):
     finished_at = Column(DateTime, nullable=True)
 
 
+class Rubric(Base):
+    """Grille d'évaluation : titre + plusieurs critères pondérés."""
+    __tablename__ = "rubrics"
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, default="")
+    subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    level_id = Column(Integer, ForeignKey("levels.id", ondelete="SET NULL"), nullable=True)
+    max_score = Column(Float, default=20)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    subject = relationship("Subject")
+    level = relationship("Level")
+    criteria = relationship(
+        "RubricCriterion",
+        back_populates="rubric",
+        cascade="all, delete-orphan",
+        order_by="RubricCriterion.position",
+    )
+
+
+class RubricCriterion(Base):
+    __tablename__ = "rubric_criteria"
+    id = Column(Integer, primary_key=True)
+    rubric_id = Column(Integer, ForeignKey("rubrics.id", ondelete="CASCADE"), nullable=False)
+    position = Column(Integer, default=0)
+    name = Column(String, nullable=False)
+    description = Column(Text, default="")
+    weight = Column(Float, default=1.0)  # poids relatif
+    max_score = Column(Float, default=4.0)  # niveau max (ex: A=4, B=3...)
+
+    rubric = relationship("Rubric", back_populates="criteria")
+
+
+class RubricEvaluation(Base):
+    """Évaluation d'un élève contre une grille."""
+    __tablename__ = "rubric_evaluations"
+    id = Column(Integer, primary_key=True)
+    rubric_id = Column(Integer, ForeignKey("rubrics.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="SET NULL"), nullable=True)
+    student_label = Column(String, default="")  # fallback if no student
+    class_id = Column(Integer, ForeignKey("classes.id", ondelete="SET NULL"), nullable=True)
+    scores_json = Column(Text, default="{}")  # {criterion_id: score}
+    final_score = Column(Float, default=0)
+    notes = Column(Text, default="")
+    date = Column(DateTime, default=datetime.utcnow)
+
+    rubric = relationship("Rubric")
+    student = relationship("Student")
+    school_class = relationship("SchoolClass")
+
+
 class Resource(Base):
     __tablename__ = "resources"
     id = Column(Integer, primary_key=True)
