@@ -86,6 +86,8 @@ export interface ScheduleEvent {
   end_time: string;
   room: string;
   color: string;
+  recurrence_weeks: number;
+  reminder_minutes: number;
   school_class?: SchoolClass | null;
   subject?: Subject | null;
 }

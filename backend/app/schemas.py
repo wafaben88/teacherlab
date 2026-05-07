@@ -183,6 +183,8 @@ class ScheduleEventIn(BaseModel):
     end_time: datetime
     room: Optional[str] = ""
     color: Optional[str] = "#6366f1"
+    recurrence_weeks: Optional[int] = 0
+    reminder_minutes: Optional[int] = 0
 
 
 class ScheduleEventOut(_Base):
@@ -196,6 +198,8 @@ class ScheduleEventOut(_Base):
     end_time: datetime
     room: str
     color: str
+    recurrence_weeks: int = 0
+    reminder_minutes: int = 0
     school_class: Optional[ClassOut] = None
     subject: Optional[SubjectOut] = None
 

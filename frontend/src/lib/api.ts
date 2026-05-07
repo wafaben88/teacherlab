@@ -42,6 +42,7 @@ export function fileDownloadUrl(fileId: number): string {
 }
 
 export const API_BASE_URL = API_URL;
+export const API_BASE = API_URL;
 
 export async function downloadPdf(path: string, filename: string) {
   const response = await api.get(path, { responseType: "blob" });

@@ -138,6 +138,10 @@ class ScheduleEvent(Base):
     end_time = Column(DateTime, nullable=False)
     room = Column(String, default="")
     color = Column(String, default="#6366f1")
+    # Optional weekly recurrence (e.g. for a class every Tuesday).
+    # 0 = no recurrence, otherwise number of weekly repeats.
+    recurrence_weeks = Column(Integer, default=0)
+    reminder_minutes = Column(Integer, default=0)  # 0 = no reminder
     created_at = Column(DateTime, default=datetime.utcnow)
 
     school_class = relationship("SchoolClass")
