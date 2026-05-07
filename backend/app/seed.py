@@ -17,6 +17,7 @@ def init_database():
                 email=config.DEFAULT_USER_EMAIL.lower(),
                 password_hash=hash_password(config.DEFAULT_USER_PASSWORD),
                 full_name=config.DEFAULT_USER_NAME,
+                role="admin",
             )
             db.add(user)
 
