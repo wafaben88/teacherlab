@@ -178,6 +178,86 @@ export interface CompetencyAssessment {
   competency?: Competency | null;
 }
 
+export interface QuizChoice {
+  id: number;
+  position: number;
+  text: string;
+  is_correct: boolean;
+}
+
+export type QuizQuestionKind = "single" | "multiple" | "text";
+
+export interface QuizQuestion {
+  id: number;
+  position: number;
+  kind: QuizQuestionKind;
+  prompt: string;
+  code_snippet: string;
+  explanation: string;
+  points: number;
+  expected_text: string;
+  choices: QuizChoice[];
+}
+
+export interface Quiz {
+  id: number;
+  title: string;
+  description: string;
+  level_id: number | null;
+  subject_id: number | null;
+  time_limit_min: number;
+  shuffle: boolean;
+  is_published: boolean;
+  created_at: string;
+  level?: Level | null;
+  subject?: Subject | null;
+  questions: QuizQuestion[];
+}
+
+export interface QuizSubmitAnswer {
+  question_id: number;
+  choice_ids: number[];
+  text?: string;
+}
+
+export interface QuizAttemptResult {
+  id: number;
+  quiz_id: number;
+  student_id: number | null;
+  student_label: string;
+  score: number;
+  max_score: number;
+  started_at: string;
+  finished_at: string | null;
+  detail: {
+    questions: Array<{
+      id: number;
+      kind: string;
+      ok: boolean;
+      points: number;
+      chosen?: number[];
+      correct?: number[];
+      user?: string;
+      expected?: string;
+    }>;
+  };
+}
+
+export interface Resource {
+  id: number;
+  title: string;
+  url: string;
+  description: string;
+  category: string;
+  level_id: number | null;
+  subject_id: number | null;
+  tags: string;
+  favorite: boolean;
+  created_at: string;
+  level?: Level | null;
+  subject?: Subject | null;
+}
+
 export interface DashboardStats {
   files_count: number;
   exercises_count: number;

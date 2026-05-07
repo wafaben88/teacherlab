@@ -10,6 +10,9 @@ import {
   Settings,
   Sparkles,
   X,
+  Bookmark,
+  ListChecks,
+  Code2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Header } from "./Header";
@@ -24,6 +27,9 @@ const NAV = [
   { to: "/schedule", labelKey: "nav.schedule", icon: Calendar },
   { to: "/classes", labelKey: "nav.classes", icon: GraduationCap },
   { to: "/grades", labelKey: "nav.grades", icon: Award },
+  { to: "/quizzes", labelKey: "nav.quizzes", icon: ListChecks },
+  { to: "/sandbox", labelKey: "nav.sandbox", icon: Code2 },
+  { to: "/resources", labelKey: "nav.resources", icon: Bookmark },
   { to: "/todos", labelKey: "nav.todos", icon: CheckSquare },
   { to: "/settings", labelKey: "nav.settings", icon: Settings },
 ];

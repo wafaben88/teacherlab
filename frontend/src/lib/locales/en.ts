@@ -9,6 +9,9 @@ export const en: Record<string, string> = {
   "nav.classes": "Classes",
   "nav.grades": "Grades",
   "nav.todos": "Todos",
+  "nav.quizzes": "Quizzes",
+  "nav.sandbox": "Code sandbox",
+  "nav.resources": "Resources",
   "nav.settings": "Settings",
 
   "common.search": "Search",

@@ -223,3 +223,87 @@ class CompetencyAssessment(Base):
 
     student = relationship("Student")
     competency = relationship("Competency")
+
+
+class Quiz(Base):
+    __tablename__ = "quizzes"
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, default="")
+    level_id = Column(Integer, ForeignKey("levels.id", ondelete="SET NULL"), nullable=True)
+    subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    time_limit_min = Column(Integer, default=0)  # 0 = unlimited
+    shuffle = Column(Boolean, default=False)
+    is_published = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    level = relationship("Level")
+    subject = relationship("Subject")
+    questions = relationship(
+        "QuizQuestion",
+        back_populates="quiz",
+        cascade="all, delete-orphan",
+        order_by="QuizQuestion.position",
+    )
+
+
+class QuizQuestion(Base):
+    __tablename__ = "quiz_questions"
+    id = Column(Integer, primary_key=True)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False)
+    position = Column(Integer, default=0)
+    kind = Column(String, default="single")  # single, multiple, text
+    prompt = Column(Text, nullable=False)
+    code_snippet = Column(Text, default="")
+    explanation = Column(Text, default="")
+    points = Column(Float, default=1.0)
+    expected_text = Column(Text, default="")  # used when kind = text
+
+    quiz = relationship("Quiz", back_populates="questions")
+    choices = relationship(
+        "QuizChoice",
+        back_populates="question",
+        cascade="all, delete-orphan",
+        order_by="QuizChoice.position",
+    )
+
+
+class QuizChoice(Base):
+    __tablename__ = "quiz_choices"
+    id = Column(Integer, primary_key=True)
+    question_id = Column(Integer, ForeignKey("quiz_questions.id", ondelete="CASCADE"), nullable=False)
+    position = Column(Integer, default=0)
+    text = Column(Text, nullable=False)
+    is_correct = Column(Boolean, default=False)
+
+    question = relationship("QuizQuestion", back_populates="choices")
+
+
+class QuizAttempt(Base):
+    __tablename__ = "quiz_attempts"
+    id = Column(Integer, primary_key=True)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="SET NULL"), nullable=True)
+    student_label = Column(String, default="")
+    score = Column(Float, default=0)
+    max_score = Column(Float, default=0)
+    answers_json = Column(Text, default="{}")
+    started_at = Column(DateTime, default=datetime.utcnow)
+    finished_at = Column(DateTime, nullable=True)
+
+
+class Resource(Base):
+    __tablename__ = "resources"
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+    description = Column(Text, default="")
+    category = Column(String, default="autre")  # cours, exercice, video, doc, outil, autre
+    level_id = Column(Integer, ForeignKey("levels.id", ondelete="SET NULL"), nullable=True)
+    subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    tags = Column(String, default="")
+    favorite = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    level = relationship("Level")
+    subject = relationship("Subject")

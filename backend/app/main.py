@@ -13,6 +13,8 @@ from .routes import (
     files_routes,
     grades_routes,
     levels_routes,
+    quizzes_routes,
+    resources_routes,
     schedule_routes,
     search_routes,
     students_routes,
@@ -60,3 +62,5 @@ app.include_router(attendance_routes.router)
 app.include_router(assignments_routes.router)
 app.include_router(competencies_routes.router)
 app.include_router(exports_routes.router)
+app.include_router(quizzes_routes.router)
+app.include_router(resources_routes.router)

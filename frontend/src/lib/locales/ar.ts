@@ -9,6 +9,9 @@ export const ar: Record<string, string> = {
   "nav.classes": "الأقسام",
   "nav.grades": "الأعداد",
   "nav.todos": "مهام",
+  "nav.quizzes": "اختبارات قصيرة",
+  "nav.sandbox": "محرر برمجي",
+  "nav.resources": "موارد",
   "nav.settings": "الإعدادات",
 
   "common.search": "بحث",

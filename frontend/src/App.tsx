@@ -11,6 +11,11 @@ import { ClassDetailPage } from "./pages/ClassDetailPage";
 import { GradesPage } from "./pages/GradesPage";
 import { TodosPage } from "./pages/TodosPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { ResourcesPage } from "./pages/ResourcesPage";
+import { SandboxPage } from "./pages/SandboxPage";
+import { QuizzesPage } from "./pages/QuizzesPage";
+import { QuizEditPage } from "./pages/QuizEditPage";
+import { QuizTakePage } from "./pages/QuizTakePage";
 
 function App() {
   return (
@@ -32,6 +37,12 @@ function App() {
         <Route path="classes/:id" element={<ClassDetailPage />} />
         <Route path="grades" element={<GradesPage />} />
         <Route path="todos" element={<TodosPage />} />
+        <Route path="resources" element={<ResourcesPage />} />
+        <Route path="sandbox" element={<SandboxPage />} />
+        <Route path="quizzes" element={<QuizzesPage />} />
+        <Route path="quizzes/new" element={<QuizEditPage />} />
+        <Route path="quizzes/:id/edit" element={<QuizEditPage />} />
+        <Route path="quizzes/:id/take" element={<QuizTakePage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>

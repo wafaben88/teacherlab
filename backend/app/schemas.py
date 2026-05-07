@@ -361,5 +361,119 @@ class CompetencyAssessmentOut(_Base):
     competency: Optional[CompetencyOut] = None
 
 
+# ------------- Quizzes -------------
+class QuizChoiceIn(BaseModel):
+    position: Optional[int] = 0
+    text: str
+    is_correct: Optional[bool] = False
+
+
+class QuizChoiceOut(_Base):
+    id: int
+    position: int
+    text: str
+    is_correct: bool
+
+
+class QuizQuestionIn(BaseModel):
+    position: Optional[int] = 0
+    kind: Optional[str] = "single"  # single, multiple, text
+    prompt: str
+    code_snippet: Optional[str] = ""
+    explanation: Optional[str] = ""
+    points: Optional[float] = 1.0
+    expected_text: Optional[str] = ""
+    choices: List[QuizChoiceIn] = []
+
+
+class QuizQuestionOut(_Base):
+    id: int
+    position: int
+    kind: str
+    prompt: str
+    code_snippet: str
+    explanation: str
+    points: float
+    expected_text: str
+    choices: List[QuizChoiceOut] = []
+
+
+class QuizIn(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    level_id: Optional[int] = None
+    subject_id: Optional[int] = None
+    time_limit_min: Optional[int] = 0
+    shuffle: Optional[bool] = False
+    is_published: Optional[bool] = True
+    questions: List[QuizQuestionIn] = []
+
+
+class QuizOut(_Base):
+    id: int
+    title: str
+    description: str
+    level_id: Optional[int]
+    subject_id: Optional[int]
+    time_limit_min: int
+    shuffle: bool
+    is_published: bool
+    created_at: datetime
+    level: Optional[LevelOut] = None
+    subject: Optional[SubjectOut] = None
+    questions: List[QuizQuestionOut] = []
+
+
+class QuizSubmitAnswer(BaseModel):
+    question_id: int
+    choice_ids: List[int] = []
+    text: Optional[str] = ""
+
+
+class QuizSubmitIn(BaseModel):
+    student_id: Optional[int] = None
+    student_label: Optional[str] = ""
+    answers: List[QuizSubmitAnswer] = []
+
+
+class QuizSubmitOut(_Base):
+    id: int
+    quiz_id: int
+    student_id: Optional[int]
+    student_label: str
+    score: float
+    max_score: float
+    started_at: datetime
+    finished_at: Optional[datetime]
+    detail: dict
+
+
+# ------------- Resources -----------
+class ResourceIn(BaseModel):
+    title: str
+    url: str
+    description: Optional[str] = ""
+    category: Optional[str] = "autre"
+    level_id: Optional[int] = None
+    subject_id: Optional[int] = None
+    tags: Optional[str] = ""
+    favorite: Optional[bool] = False
+
+
+class ResourceOut(_Base):
+    id: int
+    title: str
+    url: str
+    description: str
+    category: str
+    level_id: Optional[int]
+    subject_id: Optional[int]
+    tags: str
+    favorite: bool
+    created_at: datetime
+    level: Optional[LevelOut] = None
+    subject: Optional[SubjectOut] = None
+
+
 AttendanceBulkIn.model_rebuild()
 TokenOut.model_rebuild()
