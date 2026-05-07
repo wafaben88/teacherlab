@@ -120,7 +120,62 @@ Puis modifie `frontend/.env` : `VITE_API_URL=http://localhost:8001`.
 
 ---
 
-## 9. Déploiement plus tard
+## 9. Tests automatisés
+
+**Backend (pytest)** :
+```
+cd backend
+poetry install
+poetry run pytest -q
+```
+
+**Frontend (vitest + lint + build)** :
+```
+cd frontend
+npm install
+npm run lint
+npm test
+npm run build
+```
+
+CI (GitHub Actions) lance ces deux suites à chaque push : `.github/workflows/ci.yml`.
+
+---
+
+## 10. Lancement avec Docker (option)
+
+À la racine du projet :
+```
+docker compose up --build
+```
+- Backend : http://localhost:8000
+- Frontend : http://localhost:5173
+- Données persistées dans le volume Docker `teacherhub-data`.
+
+---
+
+## 11. Sauvegarde / Sécurité
+
+- **Sauvegarde** : Paramètres → *Sauvegarde & restauration* → bouton **Exporter** (télécharge un JSON complet).
+- **Restauration** : même section → **Importer un JSON** (option « remplacer » ou « fusionner »).
+- **2FA** (TOTP) : Paramètres → *Sécurité (2FA)* → scanne le QR avec Google Authenticator / Authy / 1Password / etc.
+- **Journal d'audit** (admin uniquement) : Paramètres → *Journal d'audit* — 100 dernières actions sensibles.
+
+---
+
+## 12. Migrations DB (Alembic)
+
+Le projet inclut Alembic pour les futures migrations :
+```
+cd backend
+poetry run alembic revision --autogenerate -m "description"
+poetry run alembic upgrade head
+```
+La base de dev est créée automatiquement au démarrage (pas besoin de migrer pour la première utilisation).
+
+---
+
+## 13. Déploiement plus tard
 
 Le code est sur **https://github.com/wafaben88/teacherlab**.
-Tu pourras déployer sur Render.com, Railway, Vercel ou un VPS quand tu veux. Le `README.md` à la racine donne les indications.
+Tu pourras déployer sur Render.com, Railway, Vercel ou un VPS quand tu veux. Le `README.md` à la racine donne les indications. Pour un déploiement Docker rapide, utilise `docker compose up -d`.
