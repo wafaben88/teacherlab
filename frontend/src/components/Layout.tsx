@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import { Header } from "./Header";
 import { CommandPalette } from "./CommandPalette";
+import { Onboarding } from "./Onboarding";
 
 const NAV = [
   { to: "/", label: "Tableau de bord", icon: LayoutDashboard, end: true },
@@ -116,6 +117,7 @@ export function Layout() {
       </div>
 
       <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
+      <Onboarding />
     </div>
   );
 }

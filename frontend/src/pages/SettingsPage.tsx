@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, Sun, Moon, Monitor, Languages } from "lucide-react";
 import { api } from "../lib/api";
 import type { Level, Subject } from "../lib/types";
 import { PageHeader } from "../components/PageHeader";
 import { Modal } from "../components/Modal";
 import { useToast } from "../components/Toast";
 import { useAuth } from "../lib/auth";
+import { useTheme, type ThemeMode } from "../lib/theme";
+import { useI18n, type Locale } from "../lib/i18n";
 
 const COLORS = [
   "#6366f1",
@@ -35,9 +37,17 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (c: string)
   );
 }
 
+const THEME_CHOICES: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
+  { mode: "light", label: "Clair", Icon: Sun },
+  { mode: "dark", label: "Sombre", Icon: Moon },
+  { mode: "auto", label: "Auto", Icon: Monitor },
+];
+
 export function SettingsPage() {
   const toast = useToast();
   const { user } = useAuth();
+  const { mode: themeMode, setMode: setThemeMode } = useTheme();
+  const { locale, setLocale, locales } = useI18n();
 
   const [levels, setLevels] = useState<Level[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -142,11 +152,73 @@ export function SettingsPage() {
       <PageHeader title="Paramètres" subtitle="Gère tes niveaux, matières et préférences." />
 
       <div className="grid lg:grid-cols-2 gap-6">
+        <div className="card p-6 lg:col-span-2">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-300 flex items-center justify-center">
+              <Sun className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Apparence & langue</h2>
+              <p className="text-xs text-muted">Thème, langue d'affichage et sens de lecture</p>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <div className="label">Thème</div>
+              <div className="flex gap-2">
+                {THEME_CHOICES.map((c) => {
+                  const active = c.mode === themeMode;
+                  return (
+                    <button
+                      key={c.mode}
+                      type="button"
+                      onClick={() => setThemeMode(c.mode)}
+                      className={`flex-1 flex flex-col items-center gap-1 px-2 py-3 rounded-xl border transition ${
+                        active
+                          ? "border-brand-400 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-200 dark:border-brand-400/40"
+                          : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      <c.Icon className="w-5 h-5" />
+                      <span className="text-xs font-medium">{c.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <div className="label flex items-center gap-1.5">
+                <Languages className="w-4 h-4" /> Langue
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {locales.map((l) => {
+                  const active = l.code === locale;
+                  return (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={() => setLocale(l.code as Locale)}
+                      className={`flex items-center justify-center gap-1 px-2 py-3 rounded-xl border transition ${
+                        active
+                          ? "border-brand-400 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-200 dark:border-brand-400/40"
+                          : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      <span className="text-base">{l.flag}</span>
+                      <span className="text-sm font-medium">{l.native}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="card p-6">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Niveaux</h2>
-              <p className="text-xs text-slate-500">Classes officielles ou personnalisées</p>
+              <h2 className="text-lg font-semibold">Niveaux</h2>
+              <p className="text-xs text-muted">Classes officielles ou personnalisées</p>
             </div>
             <button className="btn-primary" onClick={() => openLevelForm(null)}>
               <Plus className="w-4 h-4" /> Ajouter
@@ -177,8 +249,8 @@ export function SettingsPage() {
         <div className="card p-6">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Matières</h2>
-              <p className="text-xs text-slate-500">Algorithmique, Python, Réseaux…</p>
+              <h2 className="text-lg font-semibold">Matières</h2>
+              <p className="text-xs text-muted">Algorithmique, Python, Réseaux…</p>
             </div>
             <button className="btn-primary" onClick={() => openSubjectForm(null)}>
               <Plus className="w-4 h-4" /> Ajouter
@@ -207,16 +279,16 @@ export function SettingsPage() {
         </div>
 
         <div className="card p-6 lg:col-span-2">
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">Compte</h2>
-          <div className="text-sm space-y-1 text-slate-700">
+          <h2 className="text-lg font-semibold mb-3">Compte</h2>
+          <div className="text-sm space-y-1">
             <div>
-              <span className="text-slate-500">Nom :</span> {user?.full_name}
+              <span className="text-muted">Nom :</span> {user?.full_name}
             </div>
             <div>
-              <span className="text-slate-500">Email :</span> {user?.email}
+              <span className="text-muted">Email :</span> {user?.email}
             </div>
           </div>
-          <div className="text-xs text-slate-500 mt-3">
+          <div className="text-xs text-muted mt-3">
             La modification du compte sera disponible dans une prochaine version.
           </div>
         </div>

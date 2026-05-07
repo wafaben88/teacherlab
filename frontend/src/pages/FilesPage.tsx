@@ -40,9 +40,17 @@ interface UploadModalProps {
   onCreated: () => void;
   levels: Level[];
   subjects: Subject[];
+  initialFile?: File | null;
 }
 
-function UploadModal({ open, onClose, onCreated, levels, subjects }: UploadModalProps) {
+function UploadModal({
+  open,
+  onClose,
+  onCreated,
+  levels,
+  subjects,
+  initialFile,
+}: UploadModalProps) {
   const toast = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
@@ -52,6 +60,13 @@ function UploadModal({ open, onClose, onCreated, levels, subjects }: UploadModal
   const [subjectId, setSubjectId] = useState<string>("");
   const [tags, setTags] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (open && initialFile) {
+      setFile(initialFile);
+      setTitle((t) => t || initialFile.name.replace(/\.[^.]+$/, ""));
+    }
+  }, [open, initialFile]);
 
   function reset() {
     setFile(null);
@@ -328,6 +343,8 @@ export function FilesPage() {
   const [filterSubject, setFilterSubject] = useState<string>("");
   const [filterKind, setFilterKind] = useState<string>("");
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
   const [editing, setEditing] = useState<FileItem | null>(null);
 
   async function load() {
@@ -372,13 +389,68 @@ export function FilesPage() {
     }
   }
 
+  function onDragEnter(e: React.DragEvent<HTMLDivElement>) {
+    if (e.dataTransfer.types.includes("Files")) {
+      e.preventDefault();
+      setDragging(true);
+    }
+  }
+
+  function onDragOver(e: React.DragEvent<HTMLDivElement>) {
+    if (e.dataTransfer.types.includes("Files")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
+  }
+
+  function onDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    if (
+      e.currentTarget instanceof Node &&
+      (!e.relatedTarget ||
+        !(e.relatedTarget instanceof Node) ||
+        !e.currentTarget.contains(e.relatedTarget))
+    ) {
+      setDragging(false);
+    }
+  }
+
+  function onDrop(e: React.DragEvent<HTMLDivElement>) {
+    setDragging(false);
+    if (!e.dataTransfer.files?.length) return;
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    setPendingFile(f);
+    setUploadOpen(true);
+  }
+
   return (
-    <div className="animate-fade-in">
+    <div
+      className="animate-fade-in relative"
+      onDragEnter={onDragEnter}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      {dragging && (
+        <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center bg-brand-500/20 backdrop-blur-sm border-4 border-dashed border-brand-400 rounded-none">
+          <div className="surface rounded-2xl px-8 py-6 shadow-glow text-center">
+            <Upload className="w-10 h-10 mx-auto text-brand-500 mb-2" />
+            <div className="font-bold text-lg">Dépose ton fichier ici</div>
+            <div className="text-sm text-muted">PDF, DOCX, images… max 50 Mo</div>
+          </div>
+        </div>
+      )}
       <PageHeader
         title="Fichiers & Cours"
         subtitle="Tous tes documents pédagogiques en un seul endroit."
         actions={
-          <button className="btn-primary" onClick={() => setUploadOpen(true)}>
+          <button
+            className="btn-primary"
+            onClick={() => {
+              setPendingFile(null);
+              setUploadOpen(true);
+            }}
+          >
             <Upload className="w-4 h-4" /> Ajouter un fichier
           </button>
         }
@@ -529,10 +601,14 @@ export function FilesPage() {
 
       <UploadModal
         open={uploadOpen}
-        onClose={() => setUploadOpen(false)}
+        onClose={() => {
+          setUploadOpen(false);
+          setPendingFile(null);
+        }}
         onCreated={load}
         levels={levels}
         subjects={subjects}
+        initialFile={pendingFile}
       />
       <EditModal
         file={editing}
