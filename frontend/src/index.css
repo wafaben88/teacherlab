@@ -1,0 +1,85 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased font-sans;
+    background:
+      radial-gradient(900px 600px at 0% 0%, rgba(99, 102, 241, 0.08), transparent 60%),
+      radial-gradient(800px 500px at 100% 100%, rgba(14, 165, 233, 0.07), transparent 60%),
+      #f8fafc;
+  }
+
+  ::selection {
+    @apply bg-brand-200 text-brand-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 shadow-sm shadow-brand-600/30;
+  }
+  .btn-secondary {
+    @apply btn bg-white border border-slate-200 text-slate-700 hover:bg-slate-50;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-slate-700 hover:bg-slate-100;
+  }
+  .btn-danger {
+    @apply btn bg-rose-500 text-white hover:bg-rose-600;
+  }
+  .btn-icon {
+    @apply inline-flex items-center justify-center rounded-lg w-9 h-9 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition;
+  }
+  .input {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 disabled:bg-slate-50;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-700 mb-1.5;
+  }
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-soft;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all;
+  }
+  .nav-link.active {
+    @apply bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-glow hover:bg-brand-600 hover:text-white;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.25);
+  border-radius: 999px;
+  border: 2px solid #f8fafc;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.4);
+}
+
