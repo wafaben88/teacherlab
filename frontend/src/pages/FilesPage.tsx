@@ -10,8 +10,9 @@ import {
   FileImage,
   FileType,
   File as FileIcon,
+  FileDown,
 } from "lucide-react";
-import { api, fileDownloadUrl } from "../lib/api";
+import { api, downloadPdf, fileDownloadUrl } from "../lib/api";
 import type { FileItem, Level, Subject } from "../lib/types";
 import { PageHeader } from "../components/PageHeader";
 import { Modal } from "../components/Modal";
@@ -577,6 +578,18 @@ export function FilesPage() {
                     >
                       <Download className="w-4 h-4" />
                     </a>
+                    <button
+                      className="btn-icon"
+                      onClick={() =>
+                        downloadPdf(
+                          `/api/exports/file/${f.id}/handout.pdf`,
+                          `fiche_${f.title.replace(/[^a-z0-9_-]+/gi, "_")}.pdf`,
+                        )
+                      }
+                      title="Fiche PDF"
+                    >
+                      <FileDown className="w-4 h-4" />
+                    </button>
                     <button
                       className="btn-icon"
                       onClick={() => setEditing(f)}

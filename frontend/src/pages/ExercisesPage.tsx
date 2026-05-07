@@ -6,8 +6,9 @@ import {
   Trash2,
   Pencil,
   Eye,
+  FileDown,
 } from "lucide-react";
-import { api } from "../lib/api";
+import { api, downloadPdf } from "../lib/api";
 import type { Exercise, Level, Subject } from "../lib/types";
 import { PageHeader } from "../components/PageHeader";
 import { Modal } from "../components/Modal";
@@ -379,6 +380,18 @@ export function ExercisesPage() {
                 <div className="flex gap-1 opacity-60 group-hover:opacity-100 transition">
                   <button className="btn-icon" onClick={() => setViewing(ex)} title="Voir">
                     <Eye className="w-4 h-4" />
+                  </button>
+                  <button
+                    className="btn-icon"
+                    onClick={() =>
+                      downloadPdf(
+                        `/api/exports/exercise/${ex.id}.pdf?with_solution=true`,
+                        `${ex.title.replace(/[^a-z0-9_-]+/gi, "_")}.pdf`,
+                      )
+                    }
+                    title="Exporter en PDF (avec correction)"
+                  >
+                    <FileDown className="w-4 h-4" />
                   </button>
                   <button
                     className="btn-icon"
