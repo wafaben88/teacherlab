@@ -2,9 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import (
+    admin_routes,
     assignments_routes,
     attendance_routes,
     auth_routes,
+    backup_routes,
     classes_routes,
     competencies_routes,
     dashboard_routes,
@@ -73,3 +75,5 @@ app.include_router(rubrics_routes.eval_router)
 app.include_router(library_routes.router)
 app.include_router(users_routes.router)
 app.include_router(notifications_routes.router)
+app.include_router(admin_routes.router)
+app.include_router(backup_routes.router)

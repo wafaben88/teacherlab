@@ -5,7 +5,7 @@ import type { User } from "./types";
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, twofa_code?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -28,10 +28,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string, twofa_code?: string) {
     const r = await api.post<{ access_token: string; user: User }>(
       "/api/auth/login",
-      { email, password }
+      { email, password, twofa_code }
     );
     setToken(r.data.access_token);
     setUser(r.data.user);

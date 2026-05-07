@@ -1,5 +1,20 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Pencil, Sun, Moon, Monitor, Languages, KeyRound, UserCog } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  Sun,
+  Moon,
+  Monitor,
+  Languages,
+  KeyRound,
+  UserCog,
+  ShieldCheck,
+  Database,
+  Download,
+  Upload,
+  ScrollText,
+} from "lucide-react";
 import { api } from "../lib/api";
 import type { Level, Subject } from "../lib/types";
 import { PageHeader } from "../components/PageHeader";
@@ -145,6 +160,294 @@ export function SettingsPage() {
     } catch {
       toast.push("Erreur", "error");
     }
+  }
+
+  function SecuritySection() {
+    const [enabled, setEnabled] = useState(false);
+    const [secret, setSecret] = useState<string | null>(null);
+    const [otpauth, setOtpauth] = useState<string | null>(null);
+    const [code, setCode] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      api
+        .get<{ enabled: boolean }>("/api/users/me/2fa")
+        .then((r) => setEnabled(r.data.enabled))
+        .finally(() => setLoading(false));
+    }, []);
+
+    async function startSetup() {
+      const r = await api.post<{ secret: string; otpauth_url: string }>(
+        "/api/users/me/2fa/setup",
+      );
+      setSecret(r.data.secret);
+      setOtpauth(r.data.otpauth_url);
+    }
+
+    async function confirmEnable(e: React.FormEvent) {
+      e.preventDefault();
+      try {
+        await api.post("/api/users/me/2fa/enable", { code });
+        toast.push("2FA activée", "success");
+        setEnabled(true);
+        setSecret(null);
+        setOtpauth(null);
+        setCode("");
+      } catch (err: unknown) {
+        const detail =
+          (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          "Code invalide";
+        toast.push(detail, "error");
+      }
+    }
+
+    async function disable() {
+      const c = window.prompt("Code 2FA actuel pour désactiver :");
+      if (!c) return;
+      try {
+        await api.post("/api/users/me/2fa/disable", { code: c });
+        toast.push("2FA désactivée", "success");
+        setEnabled(false);
+      } catch (err: unknown) {
+        const detail =
+          (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          "Erreur";
+        toast.push(detail, "error");
+      }
+    }
+
+    const qrUrl = otpauth
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(otpauth)}`
+      : null;
+
+    return (
+      <div className="card p-6 space-y-4 lg:col-span-2">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Sécurité (2FA)</h2>
+            <p className="text-xs text-muted">
+              Active la double authentification via une application TOTP (Google Authenticator, Authy, 1Password, …)
+            </p>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="text-sm text-muted">Chargement…</div>
+        ) : enabled ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="badge bg-emerald-100 text-emerald-700">2FA activée</span>
+            <button type="button" className="btn-secondary" onClick={disable}>
+              Désactiver 2FA
+            </button>
+          </div>
+        ) : secret ? (
+          <form onSubmit={confirmEnable} className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              {qrUrl && (
+                <img
+                  src={qrUrl}
+                  alt="QR 2FA"
+                  className="w-36 h-36 rounded-xl border divider bg-white p-2"
+                />
+              )}
+              <div className="flex-1 space-y-2 text-sm">
+                <p>1. Scanne ce QR code dans ton app d'authentification.</p>
+                <p className="text-xs text-muted">
+                  Ou colle ce secret manuellement :
+                </p>
+                <code className="block break-all bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                  {secret}
+                </code>
+                <p>2. Saisis le code à 6 chiffres affiché par ton app :</p>
+                <input
+                  className="input max-w-[160px] tracking-widest text-lg"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={6}
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="submit" className="btn-primary">
+                Activer
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setSecret(null);
+                  setOtpauth(null);
+                  setCode("");
+                }}
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
+        ) : (
+          <button type="button" className="btn-primary" onClick={startSetup}>
+            <ShieldCheck className="w-4 h-4" /> Activer la 2FA
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  function BackupSection() {
+    const [busy, setBusy] = useState(false);
+
+    async function exportNow() {
+      setBusy(true);
+      try {
+        const r = await api.get("/api/backup/export");
+        const blob = new Blob([JSON.stringify(r.data, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `teacher-hub-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        toast.push("Sauvegarde téléchargée", "success");
+      } catch {
+        toast.push("Erreur lors de l'export", "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function importFile(e: React.ChangeEvent<HTMLInputElement>) {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const replace = window.confirm(
+        "Remplacer les données existantes ? OK = remplacer, Annuler = fusionner",
+      );
+      setBusy(true);
+      try {
+        const text = await f.text();
+        const parsed = JSON.parse(text);
+        const data = parsed.data ?? parsed;
+        await api.post("/api/backup/import", { data, replace });
+        toast.push("Sauvegarde importée", "success");
+      } catch {
+        toast.push("Fichier invalide", "error");
+      } finally {
+        setBusy(false);
+        e.target.value = "";
+      }
+    }
+
+    return (
+      <div className="card p-6 space-y-4 lg:col-span-2">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-300 flex items-center justify-center">
+            <Database className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Sauvegarde & restauration</h2>
+            <p className="text-xs text-muted">
+              Export complet de tes données au format JSON. À garder précieusement.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" className="btn-primary" disabled={busy} onClick={exportNow}>
+            <Download className="w-4 h-4" /> Exporter
+          </button>
+          <label className="btn-secondary cursor-pointer">
+            <Upload className="w-4 h-4" /> Importer un JSON
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={importFile}
+              disabled={busy}
+            />
+          </label>
+        </div>
+      </div>
+    );
+  }
+
+  function AuditLogSection() {
+    type AuditLog = {
+      id: number;
+      user_id: number | null;
+      action: string;
+      entity: string;
+      entity_id: number | null;
+      details: string;
+      ip: string;
+      created_at: string;
+    };
+    const [rows, setRows] = useState<AuditLog[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      api
+        .get<AuditLog[]>("/api/admin/audit-logs", { params: { limit: 100 } })
+        .then((r) => setRows(r.data))
+        .finally(() => setLoading(false));
+    }, []);
+
+    return (
+      <div className="card p-6 space-y-3 lg:col-span-2">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-300 flex items-center justify-center">
+            <ScrollText className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Journal d'audit</h2>
+            <p className="text-xs text-muted">
+              100 dernières actions sensibles (login, export, 2FA…)
+            </p>
+          </div>
+        </div>
+        {loading ? (
+          <div className="text-sm text-muted">Chargement…</div>
+        ) : rows.length === 0 ? (
+          <div className="text-sm text-muted">Aucune action enregistrée.</div>
+        ) : (
+          <div className="overflow-x-auto -mx-2">
+            <table className="min-w-full text-sm">
+              <thead className="text-xs text-muted">
+                <tr>
+                  <th className="text-left px-2 py-1.5">Date</th>
+                  <th className="text-left px-2 py-1.5">Action</th>
+                  <th className="text-left px-2 py-1.5">User</th>
+                  <th className="text-left px-2 py-1.5">IP</th>
+                  <th className="text-left px-2 py-1.5">Détails</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id} className="border-t divider">
+                    <td className="px-2 py-1.5 whitespace-nowrap text-xs">
+                      {new Date(r.created_at).toLocaleString()}
+                    </td>
+                    <td className="px-2 py-1.5 font-medium">{r.action}</td>
+                    <td className="px-2 py-1.5 text-xs">{r.user_id ?? "—"}</td>
+                    <td className="px-2 py-1.5 text-xs">{r.ip || "—"}</td>
+                    <td className="px-2 py-1.5 text-xs truncate max-w-[300px]">
+                      {r.details}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
   }
 
   function AccountSection() {
@@ -433,6 +736,9 @@ export function SettingsPage() {
         </div>
 
         <AccountSection />
+        <SecuritySection />
+        <BackupSection />
+        {user?.role === "admin" && <AuditLogSection />}
       </div>
 
       <Modal

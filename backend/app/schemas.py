@@ -53,6 +53,46 @@ class PasswordResetIn(BaseModel):
     new_password: str
 
 
+class TwoFASetupOut(BaseModel):
+    secret: str
+    otpauth_url: str
+
+
+class TwoFAEnableIn(BaseModel):
+    code: str
+
+
+class TwoFADisableIn(BaseModel):
+    code: str
+
+
+class TwoFAStatusOut(BaseModel):
+    enabled: bool
+
+
+class AuditLogOut(_Base):
+    id: int
+    user_id: Optional[int]
+    action: str
+    entity: str
+    entity_id: Optional[int]
+    details: str
+    ip: str
+    created_at: datetime
+
+
+class BackupOut(BaseModel):
+    version: str = "1"
+    exported_at: datetime
+    counts: dict
+    data: dict
+
+
+class BackupImportIn(BaseModel):
+    data: dict
+    replace: Optional[bool] = False
+
+
 class NotificationOut(_Base):
     id: int
     user_id: int

@@ -1,15 +1,18 @@
-"""User management: list, create, update, delete; password change/reset; profile."""
+"""User management: list, create, update, delete; password change/reset; profile; 2FA."""
 import secrets
 from datetime import datetime, timedelta
 from typing import List
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import pyotp
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from .. import schemas
 from ..auth import get_current_user, hash_password, verify_password
 from ..database import get_db
 from ..models import User
+from ..security import client_ip, log_audit
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -142,6 +145,66 @@ def forgot_password(payload: schemas.PasswordResetRequestIn, db: Session = Depen
     db.commit()
     # In production, replace with a send-email call. For now we expose it.
     return {"ok": True, "token": token, "expires_in_minutes": 60}
+
+
+@router.get("/me/2fa", response_model=schemas.TwoFAStatusOut)
+def get_2fa_status(current: User = Depends(get_current_user)):
+    return schemas.TwoFAStatusOut(enabled=bool(current.twofa_enabled))
+
+
+@router.post("/me/2fa/setup", response_model=schemas.TwoFASetupOut)
+def setup_2fa(
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    """Generate (or rotate) a TOTP secret. The user must confirm via /enable."""
+    secret = pyotp.random_base32()
+    current.twofa_secret = secret
+    current.twofa_enabled = False
+    db.commit()
+    issuer = "Teacher Hub"
+    label = quote(current.email)
+    otpauth_url = (
+        f"otpauth://totp/{quote(issuer)}:{label}?secret={secret}&issuer={quote(issuer)}"
+    )
+    return schemas.TwoFASetupOut(secret=secret, otpauth_url=otpauth_url)
+
+
+@router.post("/me/2fa/enable", response_model=schemas.TwoFAStatusOut)
+def enable_2fa(
+    payload: schemas.TwoFAEnableIn,
+    request: Request,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    if not current.twofa_secret:
+        raise HTTPException(status_code=400, detail="Configurez d'abord 2FA via /setup")
+    totp = pyotp.TOTP(current.twofa_secret)
+    if not totp.verify(payload.code, valid_window=1):
+        raise HTTPException(status_code=400, detail="Code 2FA invalide")
+    current.twofa_enabled = True
+    db.commit()
+    log_audit(db, user_id=current.id, action="2fa.enabled", ip=client_ip(request))
+    return schemas.TwoFAStatusOut(enabled=True)
+
+
+@router.post("/me/2fa/disable", response_model=schemas.TwoFAStatusOut)
+def disable_2fa(
+    payload: schemas.TwoFADisableIn,
+    request: Request,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    if not current.twofa_enabled or not current.twofa_secret:
+        return schemas.TwoFAStatusOut(enabled=False)
+    totp = pyotp.TOTP(current.twofa_secret)
+    if not totp.verify(payload.code, valid_window=1):
+        raise HTTPException(status_code=400, detail="Code 2FA invalide")
+    current.twofa_enabled = False
+    current.twofa_secret = ""
+    db.commit()
+    log_audit(db, user_id=current.id, action="2fa.disabled", ip=client_ip(request))
+    return schemas.TwoFAStatusOut(enabled=False)
 
 
 @router.post("/reset")

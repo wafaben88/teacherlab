@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Sparkles, Mail, Lock, ArrowRight, BookOpenCheck, Calendar, FolderKanban } from "lucide-react";
+import { Sparkles, Mail, Lock, ArrowRight, BookOpenCheck, Calendar, FolderKanban, ShieldCheck } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useToast } from "../components/Toast";
 
@@ -10,19 +10,28 @@ export function LoginPage() {
   const toast = useToast();
   const [email, setEmail] = useState("prof@teacher-hub.local");
   const [password, setPassword] = useState("changeme123");
+  const [twofaCode, setTwofaCode] = useState("");
+  const [twofaRequired, setTwofaRequired] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email.trim(), password);
+      await login(email.trim(), password, twofaRequired ? twofaCode : undefined);
       navigate("/", { replace: true });
     } catch (err: unknown) {
-      const message =
+      const detail =
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "Connexion impossible. Vérifie tes identifiants.";
-      toast.push(message, "error");
+        "";
+      if (detail.toLowerCase().includes("2fa")) {
+        setTwofaRequired(true);
+        if (detail.toLowerCase().includes("invalide")) {
+          toast.push(detail, "error");
+        }
+      } else {
+        toast.push(detail || "Connexion impossible. Vérifie tes identifiants.", "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -73,6 +82,26 @@ export function LoginPage() {
                 />
               </div>
             </div>
+            {twofaRequired && (
+              <div>
+                <label className="label flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4" /> Code 2FA
+                </label>
+                <input
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={6}
+                  value={twofaCode}
+                  onChange={(e) => setTwofaCode(e.target.value.replace(/\D/g, ""))}
+                  className="input tracking-widest text-lg"
+                  placeholder="123 456"
+                  required
+                />
+                <p className="text-xs text-muted mt-1">
+                  Saisis le code à 6 chiffres affiché par ton app d'authentification.
+                </p>
+              </div>
+            )}
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? "Connexion…" : (
                 <>
