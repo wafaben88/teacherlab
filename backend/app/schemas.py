@@ -221,4 +221,145 @@ class SearchPayload(BaseModel):
     schedule: List[ScheduleEventOut]
 
 
+# ------------- Students ------------
+class StudentIn(BaseModel):
+    class_id: int
+    first_name: str
+    last_name: str
+    email: Optional[str] = ""
+    parent_email: Optional[str] = ""
+    notes: Optional[str] = ""
+
+
+class StudentOut(_Base):
+    id: int
+    class_id: int
+    first_name: str
+    last_name: str
+    email: str
+    parent_email: str
+    notes: str
+    created_at: datetime
+
+
+# ------------- Attendance ----------
+class AttendanceIn(BaseModel):
+    class_id: int
+    student_id: int
+    event_id: Optional[int] = None
+    date: datetime
+    status: str = "present"
+    notes: Optional[str] = ""
+
+
+class AttendanceOut(_Base):
+    id: int
+    class_id: int
+    student_id: int
+    event_id: Optional[int]
+    date: datetime
+    status: str
+    notes: str
+    student: Optional[StudentOut] = None
+
+
+class AttendanceBulkIn(BaseModel):
+    class_id: int
+    event_id: Optional[int] = None
+    date: datetime
+    entries: List["AttendanceEntry"]
+
+
+class AttendanceEntry(BaseModel):
+    student_id: int
+    status: str = "present"
+    notes: Optional[str] = ""
+
+
+# ------------- Assignments ---------
+class AssignmentIn(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    class_id: int
+    subject_id: Optional[int] = None
+    due_date: Optional[datetime] = None
+    file_id: Optional[int] = None
+    max_score: Optional[float] = 20
+
+
+class AssignmentOut(_Base):
+    id: int
+    title: str
+    description: str
+    class_id: int
+    subject_id: Optional[int]
+    due_date: Optional[datetime]
+    file_id: Optional[int]
+    max_score: float
+    created_at: datetime
+    subject: Optional[SubjectOut] = None
+
+
+class SubmissionIn(BaseModel):
+    assignment_id: int
+    student_id: int
+    status: Optional[str] = "pending"
+    submitted_at: Optional[datetime] = None
+    score: Optional[float] = None
+    feedback: Optional[str] = ""
+
+
+class SubmissionOut(_Base):
+    id: int
+    assignment_id: int
+    student_id: int
+    status: str
+    submitted_at: Optional[datetime]
+    score: Optional[float]
+    feedback: str
+    student: Optional[StudentOut] = None
+
+
+# ------------- Competencies --------
+class CompetencyIn(BaseModel):
+    code: Optional[str] = ""
+    name: str
+    description: Optional[str] = ""
+    level_id: Optional[int] = None
+    subject_id: Optional[int] = None
+    color: Optional[str] = "#6366f1"
+
+
+class CompetencyOut(_Base):
+    id: int
+    code: str
+    name: str
+    description: str
+    level_id: Optional[int]
+    subject_id: Optional[int]
+    color: str
+    created_at: datetime
+    level: Optional[LevelOut] = None
+    subject: Optional[SubjectOut] = None
+
+
+class CompetencyAssessmentIn(BaseModel):
+    student_id: int
+    competency_id: int
+    rating: str = "en_cours"
+    date: Optional[datetime] = None
+    notes: Optional[str] = ""
+
+
+class CompetencyAssessmentOut(_Base):
+    id: int
+    student_id: int
+    competency_id: int
+    rating: str
+    date: datetime
+    notes: str
+    competency: Optional[CompetencyOut] = None
+
+
+AttendanceBulkIn.model_rebuild()
 TokenOut.model_rebuild()

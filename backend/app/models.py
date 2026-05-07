@@ -136,3 +136,90 @@ class TodoTask(Base):
     due_date = Column(DateTime, nullable=True)
     priority = Column(String, default="normal")  # bas, normal, haut
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Student(Base):
+    __tablename__ = "students"
+    id = Column(Integer, primary_key=True)
+    class_id = Column(Integer, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    email = Column(String, default="")
+    parent_email = Column(String, default="")
+    notes = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    school_class = relationship("SchoolClass")
+
+
+class Attendance(Base):
+    __tablename__ = "attendance"
+    id = Column(Integer, primary_key=True)
+    class_id = Column(Integer, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    event_id = Column(Integer, ForeignKey("schedule_events.id", ondelete="SET NULL"), nullable=True)
+    date = Column(DateTime, nullable=False, index=True)
+    status = Column(String, default="present")  # present, absent, retard, justifie
+    notes = Column(String, default="")
+
+    student = relationship("Student")
+    school_class = relationship("SchoolClass")
+
+
+class Assignment(Base):
+    __tablename__ = "assignments"
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, default="")
+    class_id = Column(Integer, ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    due_date = Column(DateTime, nullable=True)
+    file_id = Column(Integer, ForeignKey("files.id", ondelete="SET NULL"), nullable=True)
+    max_score = Column(Float, default=20)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    school_class = relationship("SchoolClass")
+    subject = relationship("Subject")
+    file = relationship("FileItem")
+
+
+class Submission(Base):
+    __tablename__ = "submissions"
+    id = Column(Integer, primary_key=True)
+    assignment_id = Column(Integer, ForeignKey("assignments.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String, default="pending")  # pending, submitted, late, missing, graded
+    submitted_at = Column(DateTime, nullable=True)
+    score = Column(Float, nullable=True)
+    feedback = Column(Text, default="")
+
+    assignment = relationship("Assignment")
+    student = relationship("Student")
+
+
+class Competency(Base):
+    __tablename__ = "competencies"
+    id = Column(Integer, primary_key=True)
+    code = Column(String, default="")
+    name = Column(String, nullable=False)
+    description = Column(Text, default="")
+    level_id = Column(Integer, ForeignKey("levels.id", ondelete="SET NULL"), nullable=True)
+    subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    color = Column(String, default="#6366f1")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    level = relationship("Level")
+    subject = relationship("Subject")
+
+
+class CompetencyAssessment(Base):
+    __tablename__ = "competency_assessments"
+    id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    competency_id = Column(Integer, ForeignKey("competencies.id", ondelete="CASCADE"), nullable=False)
+    rating = Column(String, default="en_cours")  # acquis, en_cours, non_acquis
+    date = Column(DateTime, default=datetime.utcnow)
+    notes = Column(String, default="")
+
+    student = relationship("Student")
+    competency = relationship("Competency")

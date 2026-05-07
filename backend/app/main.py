@@ -2,15 +2,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import (
+    assignments_routes,
+    attendance_routes,
     auth_routes,
     classes_routes,
+    competencies_routes,
     dashboard_routes,
     exercises_routes,
+    exports_routes,
     files_routes,
     grades_routes,
     levels_routes,
     schedule_routes,
     search_routes,
+    students_routes,
     subjects_routes,
     todos_routes,
 )
@@ -50,3 +55,8 @@ app.include_router(grades_routes.router)
 app.include_router(todos_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(search_routes.router)
+app.include_router(students_routes.router)
+app.include_router(attendance_routes.router)
+app.include_router(assignments_routes.router)
+app.include_router(competencies_routes.router)
+app.include_router(exports_routes.router)
