@@ -139,9 +139,22 @@ class FileOut(_Base):
     original_name: str
     mime_type: str
     size_bytes: int
+    version: int = 1
+    ocr_text: str = ""
     created_at: datetime
     level: Optional[LevelOut] = None
     subject: Optional[SubjectOut] = None
+
+
+class FileVersionOut(_Base):
+    id: int
+    file_id: int
+    version: int
+    original_name: str
+    mime_type: str
+    size_bytes: int
+    note: str
+    created_at: datetime
 
 
 # ------------- Exercises -----------

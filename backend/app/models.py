@@ -102,10 +102,34 @@ class FileItem(Base):
     original_name = Column(String, nullable=False)
     mime_type = Column(String, default="application/octet-stream")
     size_bytes = Column(Integer, default=0)
+    version = Column(Integer, default=1)
+    ocr_text = Column(Text, default="")
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     level = relationship("Level")
     subject = relationship("Subject")
+    versions = relationship(
+        "FileVersion",
+        back_populates="file",
+        cascade="all, delete-orphan",
+        order_by="FileVersion.version.desc()",
+    )
+
+
+class FileVersion(Base):
+    """Historical version of a FileItem (kept on disk for download)."""
+    __tablename__ = "file_versions"
+    id = Column(Integer, primary_key=True)
+    file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=False)
+    version = Column(Integer, nullable=False)
+    storage_name = Column(String, nullable=False)
+    original_name = Column(String, nullable=False)
+    mime_type = Column(String, default="application/octet-stream")
+    size_bytes = Column(Integer, default=0)
+    note = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    file = relationship("FileItem", back_populates="versions")
 
 
 class Exercise(Base):

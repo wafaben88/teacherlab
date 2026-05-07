@@ -11,9 +11,12 @@ import {
   FileType,
   File as FileIcon,
   FileDown,
+  Eye,
+  History,
+  ScanText,
 } from "lucide-react";
 import { api, downloadPdf, fileDownloadUrl } from "../lib/api";
-import type { FileItem, Level, Subject } from "../lib/types";
+import type { FileItem, FileVersion, Level, Subject } from "../lib/types";
 import { PageHeader } from "../components/PageHeader";
 import { Modal } from "../components/Modal";
 import { EmptyState } from "../components/EmptyState";
@@ -333,6 +336,240 @@ function EditModal({ file, onClose, onSaved, levels, subjects }: EditModalProps)
   );
 }
 
+interface PreviewModalProps {
+  file: FileItem | null;
+  onClose: () => void;
+  onChanged: () => void;
+}
+
+function PreviewModal({ file, onClose, onChanged }: PreviewModalProps) {
+  const toast = useToast();
+  const [versions, setVersions] = useState<FileVersion[]>([]);
+  const [tab, setTab] = useState<"preview" | "versions" | "ocr">("preview");
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [versionLoading, setVersionLoading] = useState(false);
+
+  useEffect(() => {
+    if (!file) return;
+    setTab("preview");
+    api.get<FileVersion[]>(`/api/files/${file.id}/versions`).then((r) =>
+      setVersions(r.data),
+    );
+  }, [file]);
+
+  if (!file) return null;
+  const mime = file.mime_type || "";
+  const isPdf = mime.includes("pdf") || file.original_name.toLowerCase().endsWith(".pdf");
+  const isImage = mime.startsWith("image/");
+  const isText = mime.startsWith("text/");
+  const url = fileDownloadUrl(file.id);
+
+  async function uploadVersion(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!file) return;
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const note = window.prompt("Note pour cette version (optionnel)") || "";
+    setVersionLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("upload", f);
+      fd.append("note", note);
+      await api.post(`/api/files/${file.id}/versions`, fd);
+      toast.push("Nouvelle version enregistrée", "success");
+      const r = await api.get<FileVersion[]>(`/api/files/${file.id}/versions`);
+      setVersions(r.data);
+      onChanged();
+    } catch {
+      toast.push("Échec de l'envoi de la version", "error");
+    } finally {
+      setVersionLoading(false);
+      e.target.value = "";
+    }
+  }
+
+  async function runOcr() {
+    if (!file) return;
+    setOcrLoading(true);
+    try {
+      await api.post(`/api/files/${file.id}/ocr`);
+      toast.push("Texte extrait", "success");
+      onChanged();
+      setTab("ocr");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data
+          ?.detail || "Erreur OCR";
+      toast.push(message, "error");
+    } finally {
+      setOcrLoading(false);
+    }
+  }
+
+  return (
+    <Modal open={!!file} onClose={onClose} title={file.title} width="xl">
+      <div className="flex items-center gap-2 mb-4 border-b border-slate-200 dark:border-slate-700">
+        <button
+          className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition ${
+            tab === "preview"
+              ? "border-brand-500 text-brand-600"
+              : "border-transparent text-slate-500"
+          }`}
+          onClick={() => setTab("preview")}
+        >
+          <Eye className="w-4 h-4 inline mr-1" /> Aperçu
+        </button>
+        <button
+          className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition ${
+            tab === "versions"
+              ? "border-brand-500 text-brand-600"
+              : "border-transparent text-slate-500"
+          }`}
+          onClick={() => setTab("versions")}
+        >
+          <History className="w-4 h-4 inline mr-1" /> Versions ({versions.length + 1})
+        </button>
+        <button
+          className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition ${
+            tab === "ocr"
+              ? "border-brand-500 text-brand-600"
+              : "border-transparent text-slate-500"
+          }`}
+          onClick={() => setTab("ocr")}
+        >
+          <ScanText className="w-4 h-4 inline mr-1" /> OCR
+        </button>
+        <div className="ml-auto flex items-center gap-2">
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-secondary"
+            title="Télécharger la version courante"
+          >
+            <Download className="w-4 h-4" /> Télécharger
+          </a>
+        </div>
+      </div>
+
+      {tab === "preview" && (
+        <div>
+          <div className="text-xs text-slate-500 mb-2">
+            v{file.version} • {file.original_name} • {formatBytes(file.size_bytes)} • {mime}
+          </div>
+          {isPdf && (
+            <iframe
+              src={url}
+              title={file.title}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700"
+              style={{ height: "70vh" }}
+            />
+          )}
+          {isImage && (
+            <img
+              src={url}
+              alt={file.title}
+              className="max-h-[70vh] mx-auto rounded-xl border border-slate-200 dark:border-slate-700"
+            />
+          )}
+          {isText && (
+            <iframe
+              src={url}
+              title={file.title}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white"
+              style={{ height: "70vh" }}
+            />
+          )}
+          {!isPdf && !isImage && !isText && (
+            <div className="card p-8 text-center text-slate-500">
+              Aperçu indisponible pour ce type de fichier.
+              <br />
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary mt-3 inline-flex"
+              >
+                <Download className="w-4 h-4" /> Télécharger
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === "versions" && (
+        <div className="space-y-3">
+          <div className="card p-4">
+            <div className="text-sm font-semibold mb-2">Téléverser une nouvelle version</div>
+            <p className="text-xs text-slate-500 mb-3">
+              La version courante (v{file.version}) sera conservée dans l'historique.
+            </p>
+            <input
+              type="file"
+              onChange={uploadVersion}
+              disabled={versionLoading}
+              className="block text-sm"
+            />
+          </div>
+          <div className="card divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="p-3 flex items-center gap-3">
+              <span className="badge bg-emerald-100 text-emerald-800">v{file.version} courante</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">{file.original_name}</div>
+                <div className="text-xs text-slate-500">
+                  {formatDate(file.created_at)} • {formatBytes(file.size_bytes)}
+                </div>
+              </div>
+              <a href={url} target="_blank" rel="noreferrer" className="btn-icon" title="Télécharger">
+                <Download className="w-4 h-4" />
+              </a>
+            </div>
+            {versions.map((v) => (
+              <div key={v.id} className="p-3 flex items-center gap-3">
+                <span className="badge bg-slate-100 text-slate-700">v{v.version}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{v.original_name}</div>
+                  <div className="text-xs text-slate-500">
+                    {formatDate(v.created_at)} • {formatBytes(v.size_bytes)}
+                    {v.note ? ` • ${v.note}` : ""}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {versions.length === 0 && (
+              <div className="p-4 text-sm text-slate-500 text-center">
+                Pas encore de version précédente.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tab === "ocr" && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <button className="btn-primary" onClick={runOcr} disabled={ocrLoading}>
+              <ScanText className="w-4 h-4" />
+              {ocrLoading ? "Extraction…" : file.ocr_text ? "Relancer l'OCR" : "Extraire le texte"}
+            </button>
+            <span className="text-xs text-slate-500">
+              PDF : extraction natif. Images : nécessite tesseract installé.
+            </span>
+          </div>
+          {file.ocr_text ? (
+            <pre className="card p-4 whitespace-pre-wrap text-sm max-h-[60vh] overflow-y-auto">
+              {file.ocr_text}
+            </pre>
+          ) : (
+            <div className="card p-8 text-center text-slate-500 text-sm">
+              Aucun texte extrait pour le moment.
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 export function FilesPage() {
   const toast = useToast();
   const [files, setFiles] = useState<FileItem[]>([]);
@@ -347,6 +584,7 @@ export function FilesPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [editing, setEditing] = useState<FileItem | null>(null);
+  const [previewing, setPreviewing] = useState<FileItem | null>(null);
 
   async function load() {
     setLoading(true);
@@ -566,9 +804,16 @@ export function FilesPage() {
                 )}
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
                   <div className="text-xs text-slate-500">
-                    {formatDate(f.created_at)} • {formatBytes(f.size_bytes)}
+                    v{f.version} • {formatDate(f.created_at)} • {formatBytes(f.size_bytes)}
                   </div>
                   <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition">
+                    <button
+                      className="btn-icon"
+                      onClick={() => setPreviewing(f)}
+                      title="Aperçu / versions / OCR"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
                     <a
                       href={fileDownloadUrl(f.id)}
                       target="_blank"
@@ -629,6 +874,18 @@ export function FilesPage() {
         onSaved={load}
         levels={levels}
         subjects={subjects}
+      />
+      <PreviewModal
+        file={previewing}
+        onClose={() => setPreviewing(null)}
+        onChanged={() => {
+          load();
+          if (previewing) {
+            api.get<FileItem>(`/api/files/${previewing.id}`).then((r) =>
+              setPreviewing(r.data),
+            );
+          }
+        }}
       />
     </div>
   );

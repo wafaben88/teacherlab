@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session, joinedload
 from .. import schemas, config
 from ..auth import get_current_user
 from ..database import get_db
-from ..models import FileItem
+from ..models import FileItem, FileVersion
 
 router = APIRouter(prefix="/api/files", tags=["files"], dependencies=[Depends(get_current_user)])
 
@@ -129,8 +129,121 @@ def delete_file(file_id: int, db: Session = Depends(get_db)):
         raise HTTPException(404, "Fichier introuvable")
     target = config.UPLOADS_DIR / item.storage_name
     target.unlink(missing_ok=True)
+    for v in item.versions:
+        (config.UPLOADS_DIR / v.storage_name).unlink(missing_ok=True)
     db.delete(item)
     db.commit()
+
+
+@router.get("/{file_id}/versions", response_model=List[schemas.FileVersionOut])
+def list_versions(file_id: int, db: Session = Depends(get_db)):
+    item = db.query(FileItem).filter(FileItem.id == file_id).first()
+    if not item:
+        raise HTTPException(404, "Fichier introuvable")
+    return item.versions
+
+
+@router.post("/{file_id}/versions", response_model=schemas.FileOut, status_code=201)
+async def upload_new_version(
+    file_id: int,
+    upload: UploadFile = File(...),
+    note: Optional[str] = Form(""),
+    db: Session = Depends(get_db),
+):
+    item = db.query(FileItem).filter(FileItem.id == file_id).first()
+    if not item:
+        raise HTTPException(404, "Fichier introuvable")
+    if not upload.filename:
+        raise HTTPException(400, "Fichier invalide")
+
+    # snapshot current file as a previous version
+    prev = FileVersion(
+        file_id=item.id,
+        version=item.version,
+        storage_name=item.storage_name,
+        original_name=item.original_name,
+        mime_type=item.mime_type,
+        size_bytes=item.size_bytes,
+        note=note or "",
+    )
+    db.add(prev)
+
+    # save new file
+    storage_name = f"{uuid.uuid4().hex}_{os.path.basename(upload.filename)}"
+    target_path = config.UPLOADS_DIR / storage_name
+    size = 0
+    chunk_size = 1024 * 1024
+    with target_path.open("wb") as out:
+        while True:
+            chunk = await upload.read(chunk_size)
+            if not chunk:
+                break
+            size += len(chunk)
+            if size > config.MAX_UPLOAD_BYTES:
+                out.close()
+                target_path.unlink(missing_ok=True)
+                raise HTTPException(413, "Fichier trop volumineux (max 50 Mo)")
+            out.write(chunk)
+
+    item.version = (item.version or 1) + 1
+    item.storage_name = storage_name
+    item.original_name = upload.filename
+    item.mime_type = upload.content_type or "application/octet-stream"
+    item.size_bytes = size
+    item.ocr_text = ""  # invalidate OCR for new version
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@router.post("/{file_id}/ocr", response_model=schemas.FileOut)
+def run_ocr(file_id: int, db: Session = Depends(get_db)):
+    item = db.query(FileItem).filter(FileItem.id == file_id).first()
+    if not item:
+        raise HTTPException(404, "Fichier introuvable")
+    target = config.UPLOADS_DIR / item.storage_name
+    if not target.exists():
+        raise HTTPException(404, "Fichier manquant sur le disque")
+
+    text = ""
+    mime = (item.mime_type or "").lower()
+    try:
+        if "pdf" in mime or item.original_name.lower().endswith(".pdf"):
+            try:
+                from pypdf import PdfReader
+                reader = PdfReader(str(target))
+                parts = []
+                for page in reader.pages:
+                    try:
+                        parts.append(page.extract_text() or "")
+                    except Exception:
+                        continue
+                text = "\n".join(parts).strip()
+            except Exception as exc:
+                raise HTTPException(500, f"Lecture PDF impossible: {exc}")
+        elif mime.startswith("image/"):
+            try:
+                import pytesseract
+                from PIL import Image
+                text = pytesseract.image_to_string(Image.open(target))
+            except Exception:
+                raise HTTPException(
+                    501,
+                    "OCR images indisponible (installe tesseract + pytesseract).",
+                )
+        elif mime.startswith("text/"):
+            text = target.read_text(encoding="utf-8", errors="replace")
+        else:
+            raise HTTPException(415, "Type de fichier non supporté pour l'OCR")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(500, f"Erreur OCR: {exc}")
+
+    item.ocr_text = text or ""
+    db.commit()
+    db.refresh(item)
+    return item
 
 
 # Public download endpoint with token via query string for direct browser links

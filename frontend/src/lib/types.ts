@@ -54,9 +54,22 @@ export interface FileItem {
   original_name: string;
   mime_type: string;
   size_bytes: number;
+  version: number;
+  ocr_text: string;
   created_at: string;
   level?: Level | null;
   subject?: Subject | null;
+}
+
+export interface FileVersion {
+  id: number;
+  file_id: number;
+  version: number;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  note: string;
+  created_at: string;
 }
 
 export interface Exercise {
