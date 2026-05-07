@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { Header } from "./Header";
 import { CommandPalette } from "./CommandPalette";
 import { Onboarding } from "./Onboarding";
+import { MobileTabBar } from "./MobileTabBar";
 import { useI18n } from "../lib/i18n";
 
 const NAV = [
@@ -123,11 +124,12 @@ export function Layout() {
           onOpenMobileNav={() => setMobileOpen(true)}
           onOpenCommand={() => setCommandOpen(true)}
         />
-        <main className="flex-1 min-w-0 p-5 md:p-8">
+        <main className="flex-1 min-w-0 p-4 sm:p-5 md:p-8 pb-24 md:pb-8">
           <Outlet />
         </main>
       </div>
 
+      <MobileTabBar onOpenMore={() => setMobileOpen(true)} />
       <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
       <Onboarding />
     </div>
