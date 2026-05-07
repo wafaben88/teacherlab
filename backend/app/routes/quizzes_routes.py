@@ -88,6 +88,8 @@ def create_quiz(payload: schemas.QuizIn, db: Session = Depends(get_db)):
         time_limit_min=payload.time_limit_min or 0,
         shuffle=bool(payload.shuffle),
         is_published=bool(payload.is_published),
+        is_template=bool(payload.is_template),
+        is_shared=bool(payload.is_shared),
     )
     db.add(quiz)
     db.flush()
@@ -108,6 +110,8 @@ def update_quiz(quiz_id: int, payload: schemas.QuizIn, db: Session = Depends(get
     quiz.time_limit_min = payload.time_limit_min or 0
     quiz.shuffle = bool(payload.shuffle)
     quiz.is_published = bool(payload.is_published)
+    quiz.is_template = bool(payload.is_template)
+    quiz.is_shared = bool(payload.is_shared)
     _replace_questions(db, quiz, payload.questions)
     db.commit()
     return _quiz_query(db).filter(Quiz.id == quiz.id).first()

@@ -126,6 +126,8 @@ class FileMetaIn(BaseModel):
     level_id: Optional[int] = None
     subject_id: Optional[int] = None
     tags: Optional[str] = ""
+    is_template: Optional[bool] = False
+    is_shared: Optional[bool] = False
 
 
 class FileOut(_Base):
@@ -141,6 +143,8 @@ class FileOut(_Base):
     size_bytes: int
     version: int = 1
     ocr_text: str = ""
+    is_template: bool = False
+    is_shared: bool = False
     created_at: datetime
     level: Optional[LevelOut] = None
     subject: Optional[SubjectOut] = None
@@ -167,6 +171,8 @@ class ExerciseIn(BaseModel):
     subject_id: Optional[int] = None
     tags: Optional[str] = ""
     file_id: Optional[int] = None
+    is_template: Optional[bool] = False
+    is_shared: Optional[bool] = False
 
 
 class ExerciseOut(_Base):
@@ -179,6 +185,8 @@ class ExerciseOut(_Base):
     subject_id: Optional[int]
     tags: str
     file_id: Optional[int]
+    is_template: bool = False
+    is_shared: bool = False
     created_at: datetime
     level: Optional[LevelOut] = None
     subject: Optional[SubjectOut] = None
@@ -469,6 +477,8 @@ class QuizIn(BaseModel):
     time_limit_min: Optional[int] = 0
     shuffle: Optional[bool] = False
     is_published: Optional[bool] = True
+    is_template: Optional[bool] = False
+    is_shared: Optional[bool] = False
     questions: List[QuizQuestionIn] = []
 
 
@@ -481,6 +491,8 @@ class QuizOut(_Base):
     time_limit_min: int
     shuffle: bool
     is_published: bool
+    is_template: bool = False
+    is_shared: bool = False
     created_at: datetime
     level: Optional[LevelOut] = None
     subject: Optional[SubjectOut] = None
@@ -535,6 +547,8 @@ class RubricIn(BaseModel):
     subject_id: Optional[int] = None
     level_id: Optional[int] = None
     max_score: Optional[float] = 20
+    is_template: Optional[bool] = False
+    is_shared: Optional[bool] = False
     criteria: List[RubricCriterionIn] = []
 
 
@@ -545,6 +559,8 @@ class RubricOut(_Base):
     subject_id: Optional[int]
     level_id: Optional[int]
     max_score: float
+    is_template: bool = False
+    is_shared: bool = False
     created_at: datetime
     subject: Optional[SubjectOut] = None
     level: Optional[LevelOut] = None

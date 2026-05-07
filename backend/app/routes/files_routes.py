@@ -61,6 +61,8 @@ async def upload_file(
     level_id: Optional[int] = Form(None),
     subject_id: Optional[int] = Form(None),
     tags: Optional[str] = Form(""),
+    is_template: Optional[bool] = Form(False),
+    is_shared: Optional[bool] = Form(False),
     db: Session = Depends(get_db),
 ):
     if not upload.filename:
@@ -94,6 +96,8 @@ async def upload_file(
         original_name=upload.filename,
         mime_type=upload.content_type or "application/octet-stream",
         size_bytes=size,
+        is_template=bool(is_template),
+        is_shared=bool(is_shared),
     )
     db.add(item)
     db.commit()

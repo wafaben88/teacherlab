@@ -104,6 +104,8 @@ class FileItem(Base):
     size_bytes = Column(Integer, default=0)
     version = Column(Integer, default=1)
     ocr_text = Column(Text, default="")
+    is_template = Column(Boolean, default=False)
+    is_shared = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     level = relationship("Level")
@@ -143,6 +145,8 @@ class Exercise(Base):
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
     tags = Column(String, default="")
     file_id = Column(Integer, ForeignKey("files.id", ondelete="SET NULL"), nullable=True)
+    is_template = Column(Boolean, default=False)
+    is_shared = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     level = relationship("Level")
@@ -295,6 +299,8 @@ class Quiz(Base):
     time_limit_min = Column(Integer, default=0)  # 0 = unlimited
     shuffle = Column(Boolean, default=False)
     is_published = Column(Boolean, default=True)
+    is_template = Column(Boolean, default=False)
+    is_shared = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     level = relationship("Level")
@@ -361,6 +367,8 @@ class Rubric(Base):
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
     level_id = Column(Integer, ForeignKey("levels.id", ondelete="SET NULL"), nullable=True)
     max_score = Column(Float, default=20)
+    is_template = Column(Boolean, default=False)
+    is_shared = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     subject = relationship("Subject")

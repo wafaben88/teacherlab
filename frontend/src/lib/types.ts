@@ -56,6 +56,8 @@ export interface FileItem {
   size_bytes: number;
   version: number;
   ocr_text: string;
+  is_template?: boolean;
+  is_shared?: boolean;
   created_at: string;
   level?: Level | null;
   subject?: Subject | null;
@@ -82,6 +84,8 @@ export interface Exercise {
   subject_id: number | null;
   tags: string;
   file_id: number | null;
+  is_template?: boolean;
+  is_shared?: boolean;
   created_at: string;
   level?: Level | null;
   subject?: Subject | null;
@@ -238,6 +242,8 @@ export interface Quiz {
   time_limit_min: number;
   shuffle: boolean;
   is_published: boolean;
+  is_template?: boolean;
+  is_shared?: boolean;
   created_at: string;
   level?: Level | null;
   subject?: Subject | null;
@@ -289,6 +295,8 @@ export interface Rubric {
   subject_id: number | null;
   level_id: number | null;
   max_score: number;
+  is_template?: boolean;
+  is_shared?: boolean;
   created_at: string;
   subject?: Subject | null;
   level?: Level | null;
@@ -322,6 +330,19 @@ export interface Resource {
   created_at: string;
   level?: Level | null;
   subject?: Subject | null;
+}
+
+export type LibraryItemType = "file" | "exercise" | "quiz" | "rubric";
+
+export interface LibraryItem {
+  type: LibraryItemType;
+  id: number;
+  title: string;
+  description: string;
+  is_template: boolean;
+  is_shared: boolean;
+  level_id: number | null;
+  subject_id: number | null;
 }
 
 export interface DashboardStats {

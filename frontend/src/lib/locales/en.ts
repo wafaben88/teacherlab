@@ -11,6 +11,7 @@ export const en: Record<string, string> = {
   "nav.rubrics": "Rubrics",
   "nav.todos": "Todos",
   "nav.quizzes": "Quizzes",
+  "nav.library": "Library",
   "nav.sandbox": "Code sandbox",
   "nav.resources": "Resources",
   "nav.settings": "Settings",

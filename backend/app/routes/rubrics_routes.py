@@ -56,6 +56,17 @@ def create_rubric(payload: schemas.RubricIn, db: Session = Depends(get_db)):
     return rubric
 
 
+@router.get("/templates", response_model=List[schemas.RubricOut])
+def list_rubric_templates(db: Session = Depends(get_db)):
+    return (
+        db.query(Rubric)
+        .options(joinedload(Rubric.criteria))
+        .filter(Rubric.is_template.is_(True))
+        .order_by(Rubric.created_at.desc())
+        .all()
+    )
+
+
 @router.get("/{rubric_id}", response_model=schemas.RubricOut)
 def get_rubric(rubric_id: int, db: Session = Depends(get_db)):
     rubric = db.query(Rubric).filter(Rubric.id == rubric_id).first()

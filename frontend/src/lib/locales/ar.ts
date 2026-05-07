@@ -11,6 +11,7 @@ export const ar: Record<string, string> = {
   "nav.rubrics": "شبكات تقييم",
   "nav.todos": "مهام",
   "nav.quizzes": "اختبارات قصيرة",
+  "nav.library": "مكتبة",
   "nav.sandbox": "محرر برمجي",
   "nav.resources": "موارد",
   "nav.settings": "الإعدادات",
