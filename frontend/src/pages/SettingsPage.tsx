@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Pencil, Sun, Moon, Monitor, Languages } from "lucide-react";
+import { Plus, Trash2, Pencil, Sun, Moon, Monitor, Languages, KeyRound, UserCog } from "lucide-react";
 import { api } from "../lib/api";
 import type { Level, Subject } from "../lib/types";
 import { PageHeader } from "../components/PageHeader";
@@ -147,6 +147,160 @@ export function SettingsPage() {
     }
   }
 
+  function AccountSection() {
+    const [fullName, setFullName] = useState(user?.full_name ?? "");
+    const [bio, setBio] = useState(user?.bio ?? "");
+    const [avatarColor, setAvatarColor] = useState(user?.avatar_color ?? "#6366f1");
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [currentPwd, setCurrentPwd] = useState("");
+    const [newPwd, setNewPwd] = useState("");
+    const [confirmPwd, setConfirmPwd] = useState("");
+    const [savingPwd, setSavingPwd] = useState(false);
+
+    async function saveProfile(e: React.FormEvent) {
+      e.preventDefault();
+      setSavingProfile(true);
+      try {
+        await api.put("/api/users/me", {
+          full_name: fullName,
+          email: user?.email,
+          bio,
+          avatar_color: avatarColor,
+        });
+        toast.push("Profil mis à jour", "success");
+      } catch {
+        toast.push("Erreur de mise à jour", "error");
+      } finally {
+        setSavingProfile(false);
+      }
+    }
+
+    async function changePwd(e: React.FormEvent) {
+      e.preventDefault();
+      if (newPwd !== confirmPwd) {
+        toast.push("Les mots de passe ne correspondent pas", "error");
+        return;
+      }
+      if (newPwd.length < 6) {
+        toast.push("Mot de passe trop court (min 6)", "error");
+        return;
+      }
+      setSavingPwd(true);
+      try {
+        await api.post("/api/users/me/password", {
+          current_password: currentPwd,
+          new_password: newPwd,
+        });
+        toast.push("Mot de passe changé", "success");
+        setCurrentPwd("");
+        setNewPwd("");
+        setConfirmPwd("");
+      } catch (err: unknown) {
+        const detail =
+          (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+          "Erreur";
+        toast.push(detail, "error");
+      } finally {
+        setSavingPwd(false);
+      }
+    }
+
+    return (
+      <div className="grid lg:grid-cols-2 gap-6 lg:col-span-2">
+        <form onSubmit={saveProfile} className="card p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-300 flex items-center justify-center">
+              <UserCog className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Mon profil</h2>
+              <p className="text-xs text-muted">Nom affiché, bio et couleur d'avatar</p>
+            </div>
+          </div>
+          <div>
+            <label className="label">Nom complet</label>
+            <input
+              className="input"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label">Email</label>
+            <input className="input" disabled value={user?.email ?? ""} />
+          </div>
+          <div>
+            <label className="label">Bio courte</label>
+            <textarea
+              className="input min-h-[64px]"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Prof d'informatique au lycée…"
+            />
+          </div>
+          <div>
+            <label className="label">Couleur de l'avatar</label>
+            <ColorPicker value={avatarColor} onChange={setAvatarColor} />
+          </div>
+          <button type="submit" className="btn-primary" disabled={savingProfile}>
+            {savingProfile ? "Enregistrement…" : "Enregistrer"}
+          </button>
+        </form>
+
+        <form onSubmit={changePwd} className="card p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-300 flex items-center justify-center">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Changer le mot de passe</h2>
+              <p className="text-xs text-muted">Pense à utiliser un mot de passe robuste</p>
+            </div>
+          </div>
+          <div>
+            <label className="label">Mot de passe actuel</label>
+            <input
+              type="password"
+              className="input"
+              required
+              autoComplete="current-password"
+              value={currentPwd}
+              onChange={(e) => setCurrentPwd(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label">Nouveau mot de passe</label>
+            <input
+              type="password"
+              className="input"
+              required
+              autoComplete="new-password"
+              minLength={6}
+              value={newPwd}
+              onChange={(e) => setNewPwd(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label">Confirmation</label>
+            <input
+              type="password"
+              className="input"
+              required
+              autoComplete="new-password"
+              minLength={6}
+              value={confirmPwd}
+              onChange={(e) => setConfirmPwd(e.target.value)}
+            />
+          </div>
+          <button type="submit" className="btn-primary" disabled={savingPwd}>
+            {savingPwd ? "Enregistrement…" : "Mettre à jour"}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in">
       <PageHeader title="Paramètres" subtitle="Gère tes niveaux, matières et préférences." />
@@ -278,20 +432,7 @@ export function SettingsPage() {
           </div>
         </div>
 
-        <div className="card p-6 lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-3">Compte</h2>
-          <div className="text-sm space-y-1">
-            <div>
-              <span className="text-muted">Nom :</span> {user?.full_name}
-            </div>
-            <div>
-              <span className="text-muted">Email :</span> {user?.email}
-            </div>
-          </div>
-          <div className="text-xs text-muted mt-3">
-            La modification du compte sera disponible dans une prochaine version.
-          </div>
-        </div>
+        <AccountSection />
       </div>
 
       <Modal

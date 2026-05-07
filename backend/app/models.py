@@ -19,7 +19,39 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
     full_name = Column(String, nullable=False, default="Enseignant")
+    role = Column(String, default="teacher")  # teacher, admin
+    is_active = Column(Boolean, default=True)
+    avatar_color = Column(String, default="#6366f1")
+    bio = Column(Text, default="")
+    reset_token = Column(String, default="")
+    reset_token_expires = Column(DateTime, nullable=True)
+    twofa_secret = Column(String, default="")
+    twofa_enabled = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False)
+    body = Column(Text, default="")
+    kind = Column(String, default="info")  # info, success, warning, alert
+    link = Column(String, default="")
+    read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    action = Column(String, nullable=False)  # login, logout, create, update, delete
+    entity = Column(String, default="")  # file, exercise, etc.
+    entity_id = Column(Integer, nullable=True)
+    details = Column(Text, default="")
+    ip = Column(String, default="")
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
 
 class Level(Base):

@@ -23,6 +23,52 @@ class UserOut(_Base):
     id: int
     email: str
     full_name: str
+    role: str = "teacher"
+    is_active: bool = True
+    avatar_color: str = "#6366f1"
+    bio: str = ""
+
+
+class UserIn(BaseModel):
+    email: str
+    password: Optional[str] = None
+    full_name: str
+    role: Optional[str] = "teacher"
+    avatar_color: Optional[str] = "#6366f1"
+    bio: Optional[str] = ""
+    is_active: Optional[bool] = True
+
+
+class PasswordChangeIn(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class PasswordResetRequestIn(BaseModel):
+    email: str
+
+
+class PasswordResetIn(BaseModel):
+    token: str
+    new_password: str
+
+
+class NotificationOut(_Base):
+    id: int
+    user_id: int
+    title: str
+    body: str
+    kind: str
+    link: str
+    read: bool
+    created_at: datetime
+
+
+class NotificationIn(BaseModel):
+    title: str
+    body: Optional[str] = ""
+    kind: Optional[str] = "info"
+    link: Optional[str] = ""
 
 
 # ------------- Levels --------------

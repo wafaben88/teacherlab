@@ -65,6 +65,21 @@ export function RosterTab({ classId }: Props) {
         <div className="flex gap-2 flex-wrap">
           <button
             className="btn-secondary"
+            disabled={students.filter((s) => s.parent_email).length === 0}
+            onClick={() => {
+              const emails = students
+                .map((s) => s.parent_email)
+                .filter((e) => !!e)
+                .join(",");
+              if (!emails) return;
+              window.location.href = `mailto:?bcc=${encodeURIComponent(emails)}`;
+            }}
+            title="Envoyer un email à tous les parents (BCC)"
+          >
+            <Mail className="w-4 h-4" /> Email parents
+          </button>
+          <button
+            className="btn-secondary"
             onClick={() =>
               downloadPdf(
                 `/api/exports/class/${classId}/grades.pdf`,

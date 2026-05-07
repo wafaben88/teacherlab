@@ -2,6 +2,21 @@ export interface User {
   id: number;
   email: string;
   full_name: string;
+  role?: string;
+  is_active?: boolean;
+  avatar_color?: string;
+  bio?: string;
+}
+
+export interface Notification {
+  id: number;
+  user_id: number;
+  title: string;
+  body: string;
+  kind: string; // info | success | warning | alert
+  link: string;
+  read: boolean;
+  created_at: string;
 }
 
 export interface Level {

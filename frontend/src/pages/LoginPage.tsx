@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Sparkles, Mail, Lock, ArrowRight, BookOpenCheck, Calendar, FolderKanban } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useToast } from "../components/Toast";
@@ -80,6 +80,11 @@ export function LoginPage() {
                 </>
               )}
             </button>
+            <div className="text-right">
+              <Link to="/forgot" className="text-xs text-brand-600 hover:underline">
+                Mot de passe oublié ?
+              </Link>
+            </div>
           </form>
 
           <div className="mt-6 p-3 bg-slate-50 rounded-lg text-xs text-slate-600">

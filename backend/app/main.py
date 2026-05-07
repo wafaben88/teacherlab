@@ -13,6 +13,7 @@ from .routes import (
     files_routes,
     grades_routes,
     levels_routes,
+    notifications_routes,
     quizzes_routes,
     resources_routes,
     schedule_routes,
@@ -20,6 +21,7 @@ from .routes import (
     students_routes,
     subjects_routes,
     todos_routes,
+    users_routes,
 )
 from .seed import init_database
 
@@ -64,3 +66,5 @@ app.include_router(competencies_routes.router)
 app.include_router(exports_routes.router)
 app.include_router(quizzes_routes.router)
 app.include_router(resources_routes.router)
+app.include_router(users_routes.router)
+app.include_router(notifications_routes.router)

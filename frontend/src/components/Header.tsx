@@ -1,7 +1,9 @@
-import { Menu, Sparkles, Search, Sun, Moon, Monitor, LogOut } from "lucide-react";
+import { Menu, Sparkles, Search, Sun, Moon, Monitor, LogOut, UserCog } from "lucide-react";
 import { useTheme, type ThemeMode } from "../lib/theme";
 import { useAuth } from "../lib/auth";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { NotificationsBell } from "./NotificationsBell";
 
 interface HeaderProps {
   onOpenMobileNav: () => void;
@@ -108,10 +110,18 @@ function UserMenu() {
             <div className="text-sm font-semibold truncate">{user.full_name}</div>
             <div className="text-xs text-muted truncate">{user.email}</div>
           </div>
+          <Link
+            to="/settings"
+            onClick={() => setOpen(false)}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 mt-1"
+          >
+            <UserCog className="w-4 h-4" />
+            <span>Mon compte</span>
+          </Link>
           <button
             type="button"
             onClick={logout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10 mt-1"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
           >
             <LogOut className="w-4 h-4" />
             <span>Se déconnecter</span>
@@ -161,6 +171,7 @@ export function Header({ onOpenMobileNav, onOpenCommand }: HeaderProps) {
       </button>
 
       <div className="ms-auto flex items-center gap-1.5">
+        <NotificationsBell />
         <ThemeMenu />
         <UserMenu />
       </div>
