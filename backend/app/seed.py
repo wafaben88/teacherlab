@@ -38,7 +38,13 @@ def _upgrade_schema(eng: Engine) -> None:
 
 
 def _backfill_user_defaults(db: Session) -> None:
-    """Backfill columns added in later packs (NULL after ALTER TABLE ADD COLUMN)."""
+    """Backfill any User columns left NULL by an old DB shape.
+
+    Some columns were added later (PACK 10: role, twofa_*) and ALTER TABLE
+    ADD COLUMN populates them as NULL. Other columns (is_active, avatar_color,
+    bio, full_name, reset_token) were once seeded as NULL by older versions.
+    Pydantic UserOut requires all of them as non-null, so normalize here.
+    """
     default_email = config.DEFAULT_USER_EMAIL.lower()
     for u in db.query(User).all():
         changed = False
@@ -50,6 +56,21 @@ def _backfill_user_defaults(db: Session) -> None:
             changed = True
         if u.twofa_enabled is None:
             u.twofa_enabled = False
+            changed = True
+        if u.is_active is None:
+            u.is_active = True
+            changed = True
+        if u.avatar_color is None or u.avatar_color == "":
+            u.avatar_color = "#6366f1"
+            changed = True
+        if u.bio is None:
+            u.bio = ""
+            changed = True
+        if u.full_name is None or u.full_name == "":
+            u.full_name = config.DEFAULT_USER_NAME
+            changed = True
+        if u.reset_token is None:
+            u.reset_token = ""
             changed = True
         if changed:
             db.add(u)
