@@ -1,5 +1,9 @@
-from fastapi import FastAPI
+import logging
+import traceback
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .routes import (
     admin_routes,
@@ -39,6 +43,53 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+
+log = logging.getLogger(__name__)
+
+
+def _cors_headers_for(request: Request) -> dict:
+    """Return the CORS headers we would have echoed for this request.
+
+    We allow any origin (matching the CORSMiddleware config) and credentials.
+    This is only used by the unhandled-exception handler so the browser can
+    actually see the 500 body instead of crying about a missing CORS header.
+    """
+    origin = request.headers.get("origin")
+    if origin:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Vary": "Origin",
+        }
+    return {"Access-Control-Allow-Origin": "*"}
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception):
+    """Make sure 500s still carry CORS headers.
+
+    Without this, an unhandled exception bubbles up through Starlette's
+    ServerErrorMiddleware which sits OUTSIDE CORSMiddleware, so the response
+    has no Access-Control-Allow-Origin header and the browser reports the
+    server error as a confusing 'CORS error'. We log the traceback server-
+    side and return a structured JSON so the real cause is visible.
+    """
+    log.error(
+        "Unhandled exception on %s %s\n%s",
+        request.method,
+        request.url.path,
+        traceback.format_exc(),
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Erreur serveur",
+            "error_type": type(exc).__name__,
+            "error_message": str(exc),
+        },
+        headers=_cors_headers_for(request),
+    )
 
 
 @app.on_event("startup")

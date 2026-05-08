@@ -1,7 +1,19 @@
 """Seed initial data on first run."""
 import logging
+from datetime import datetime
+from typing import Any
 
-from sqlalchemy import inspect, text
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Float,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    inspect,
+    text,
+)
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from sqlalchemy.schema import CreateColumn
@@ -37,43 +49,106 @@ def _upgrade_schema(eng: Engine) -> None:
                 conn.execute(text(stmt))
 
 
-def _backfill_user_defaults(db: Session) -> None:
-    """Backfill any User columns left NULL by an old DB shape.
+def _safe_default_for(col: Any) -> Any:
+    """Compute a safe non-null default for a column when its row value is NULL.
 
-    Some columns were added later (PACK 10: role, twofa_*) and ALTER TABLE
-    ADD COLUMN populates them as NULL. Other columns (is_active, avatar_color,
-    bio, full_name, reset_token) were once seeded as NULL by older versions.
-    Pydantic UserOut requires all of them as non-null, so normalize here.
+    Used for legacy DBs that have NULL in columns the Pydantic Out-schemas
+    declare as non-null (str/bool/int/float). We prefer the column's own
+    SQLAlchemy default when it's a constant; otherwise we fall back to a
+    type-appropriate empty value.
     """
+    # Prefer the explicit SQLA default if it's a plain constant scalar.
+    default = getattr(col, "default", None)
+    if default is not None and getattr(default, "is_scalar", False):
+        return default.arg
+
+    py_type = type(col.type)
+    if isinstance(col.type, (String, Text)):
+        return ""
+    if isinstance(col.type, Boolean):
+        return False
+    if isinstance(col.type, Integer):
+        return 0
+    if isinstance(col.type, (Float, Numeric)):
+        return 0.0
+    if isinstance(col.type, DateTime):
+        return datetime.utcnow()
+    # Unknown column type: leave alone.
+    log.debug("No safe default known for column %s (%s)", col.name, py_type.__name__)
+    return None
+
+
+def _backfill_all_defaults(db: Session) -> int:
+    """Walk every mapped table and coerce NULL → safe default.
+
+    Why: older versions of the schema let some columns be persisted as NULL
+    (or ALTER TABLE ADD COLUMN populates new columns with NULL). The Pydantic
+    response models declare those fields as non-null, so a SELECT-ALL on
+    such a row raises ValidationError and the request 500s. We normalize
+    every nullable-with-default column once on startup so every legacy row
+    comes back conforming.
+
+    This is idempotent: rows already populated are left untouched.
+    Returns the number of rows touched (for logging / tests).
+    """
+    touched = 0
+
+    # Domain-specific extras run FIRST so the generic loop sees real values
+    # and doesn't overwrite them with the column-level default. The default
+    # admin user must keep role='admin', not be reset to the SQLA default
+    # 'teacher'.
     default_email = config.DEFAULT_USER_EMAIL.lower()
     for u in db.query(User).all():
-        changed = False
-        if u.role is None or u.role == "":
-            u.role = "admin" if u.email == default_email else "teacher"
-            changed = True
-        if u.twofa_secret is None:
-            u.twofa_secret = ""
-            changed = True
-        if u.twofa_enabled is None:
-            u.twofa_enabled = False
-            changed = True
-        if u.is_active is None:
-            u.is_active = True
-            changed = True
-        if u.avatar_color is None or u.avatar_color == "":
-            u.avatar_color = "#6366f1"
-            changed = True
-        if u.bio is None:
-            u.bio = ""
-            changed = True
-        if u.full_name is None or u.full_name == "":
-            u.full_name = config.DEFAULT_USER_NAME
-            changed = True
-        if u.reset_token is None:
-            u.reset_token = ""
-            changed = True
-        if changed:
+        if not u.role:
+            u.role = "admin" if (u.email or "").lower() == default_email else "teacher"
             db.add(u)
+            touched += 1
+        if not u.full_name:
+            u.full_name = config.DEFAULT_USER_NAME
+            db.add(u)
+            touched += 1
+
+    for table in Base.metadata.sorted_tables:
+        mapped_class = None
+        for mapper in Base.registry.mappers:
+            if mapper.local_table is table:
+                mapped_class = mapper.class_
+                break
+        if mapped_class is None:
+            continue
+
+        # Columns we will normalize on read: must be set on the column object,
+        # not relationships, and must have a safe default we can compute.
+        normalizables = []
+        for col in table.columns:
+            if col.primary_key:
+                continue
+            if col.foreign_keys:
+                continue  # FKs are intentionally nullable, leave them
+            safe = _safe_default_for(col)
+            if safe is None:
+                continue
+            normalizables.append((col.name, safe))
+
+        if not normalizables:
+            continue
+
+        for row in db.query(mapped_class).all():
+            changed = False
+            for col_name, safe in normalizables:
+                if getattr(row, col_name) is None:
+                    setattr(row, col_name, safe)
+                    changed = True
+            if changed:
+                db.add(row)
+                touched += 1
+
+    return touched
+
+
+# Backwards-compat alias used by the existing pytest non-regression suite.
+def _backfill_user_defaults(db: Session) -> int:
+    return _backfill_all_defaults(db)
 
 
 def init_database():
@@ -91,7 +166,9 @@ def init_database():
             )
             db.add(user)
         else:
-            _backfill_user_defaults(db)
+            n = _backfill_all_defaults(db)
+            if n:
+                log.warning("Schema backfill: normalized %d legacy NULL row(s)", n)
 
         # Default levels (Tunisian secondary curriculum)
         if not db.query(Level).first():
